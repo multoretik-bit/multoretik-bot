@@ -92,7 +92,7 @@ def plashka_frame(t, total):
     k = ease(t / 0.5) if t < total - 0.4 else max(0.0, 1 - (t - (total - 0.4)) / 0.4)
     if k <= 0:
         return im
-    w, h = 1180, 170
+    w, h = 1270, 170
     x = int(-w + (w + 60) * k)
     y = H - 260
     sh = Image.new('RGBA', (W, H), (0, 0, 0, 0))
@@ -103,8 +103,8 @@ def plashka_frame(t, total):
     wob = math.sin(t * 9) * 6
     d.ellipse([x + 30, y + 25 + wob, x + 150, y + 145 + wob], fill=YELLOW + (255,))
     d.text((x + 90, y + 85 + wob), 'КОД', font=font(36), fill=INK, anchor='mm')
-    d.text((x + 180, y + 58), 'В конце серии — секретный код!', font=font(46), fill='white', anchor='lm')
-    d.text((x + 180, y + 118), 'Досмотри и введи в ' + BOT, font=font(36), fill=(255, 236, 214), anchor='lm')
+    d.text((x + 180, y + 58), 'В этой серии спрятан секретный код!', font=font(46), fill='white', anchor='lm')
+    d.text((x + 180, y + 118), 'Смотри внимательно — код в ' + BOT, font=font(36), fill=(255, 236, 214), anchor='lm')
     return im
 
 
@@ -119,7 +119,7 @@ def plashka(voice, out):
 
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CAPTIONS = [(0.00, 'У МультоРетика свой Telegram-бот!'), (0.22, 'В конце каждой серии — секретный код'),
+CAPTIONS = [(0.00, 'У МультоРетика свой Telegram-бот!'), (0.20, 'В каждой серии спрятан секретный код'),
             (0.45, 'Вводи коды — собирай карточки героев'), (0.70, 'Позови друга — редкая карточка обоим'),
             (0.86, 'Telegram  ' + BOT)]
 

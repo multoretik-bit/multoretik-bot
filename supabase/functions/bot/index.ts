@@ -148,7 +148,7 @@ async function me(u: TgUser) {
     db.from("users").select("coins,streak,subs,notify").eq("tg_id", u.id).single(),
     db.from("user_cards").select("card_id,count").eq("tg_id", u.id),
     db.from("videos").select("id,channel,title,yt_url,vk_url,rt_url,thumb_url,published_at")
-      .lte("published_at", new Date().toISOString()).order("published_at", { ascending: false }).limit(40),
+      .not("notified_at", "is", null).order("published_at", { ascending: false }).limit(40),
     db.from("leaderboard").select("tg_id,name,unique_cards").limit(20),
     db.from("redemptions").select("video_id").eq("tg_id", u.id),
   ]);
@@ -163,14 +163,14 @@ async function me(u: TgUser) {
 
 async function redeem(u: TgUser, raw: string) {
   const code = String(raw || "").replace(/\D/g, "");
-  if (code.length !== 5) return json({ error: "Код — это 5 цифр из конца серии" }, 400);
+  if (code.length !== 5) return json({ error: "Код — это 5 цифр из серии" }, 400);
   const since = new Date(Date.now() - 3600e3).toISOString();
   const { count: bad } = await db.from("code_attempts").select("tg_id", { count: "exact", head: true }).eq("tg_id", u.id).gte("at", since);
   if ((bad || 0) >= MAX_BAD_CODES) return json({ error: "Слишком много неверных кодов. Попробуй через час" }, 429);
   const { data: v } = await db.from("videos").select("id,channel,title,published_at").eq("code", code).maybeSingle();
   if (!v || !v.published_at) {
     await db.from("code_attempts").insert({ tg_id: u.id });
-    return json({ error: "Такого кода нет. Проверь цифры в конце серии" }, 404);
+    return json({ error: "Такого кода нет. Проверь цифры из серии" }, 404);
   }
   const user = await upsertUser(u);
   const fresh = Date.now() - new Date(v.published_at).getTime() < FRESH_H * 3600e3;
@@ -222,23 +222,29 @@ async function reserve(v: any) {
 // после выкладки: ссылки и время выхода (published_at — время выхода на YouTube, epoch секунд)
 async function publish(v: any) {
   if (!v?.id || !v?.title) return json({ error: "bad video" }, 400);
-  const patch = {
-    title: String(v.title).slice(0, 200), yt_url: v.yt_url || null, vk_url: v.vk_url || null, rt_url: v.rt_url || null,
-    thumb_url: v.thumb_url || null,
-    published_at: v.published_at ? new Date(v.published_at * 1000).toISOString() : new Date().toISOString(),
-  };
+  const patch: Record<string, unknown> = { title: String(v.title).slice(0, 200) };
+  for (const k of ["yt_url", "vk_url", "rt_url", "thumb_url"]) if (v[k]) patch[k] = v[k];
+  if (v.published_at) patch.published_at = new Date(v.published_at * 1000).toISOString();
   const { data, error } = await db.from("videos").update(patch).eq("id", String(v.id)).select("code");
   if (error) return json({ error: error.message }, 500);
   if (!data?.length) return json({ error: "код серии не был зарезервирован" }, 404);
   return json({ ok: true, code: data[0].code });
 }
 
+async function isPublic(url: string) {
+  try {
+    const r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(url));
+    return r.status === 200;
+  } catch { return false; }
+}
+
 async function tick() {
   const now = new Date();
   const { data: due } = await db.from("videos").select("*").is("notified_at", null).lte("published_at", now.toISOString())
-    .gte("published_at", new Date(now.getTime() - 12 * 3600e3).toISOString()).order("published_at").limit(5);
+    .gte("published_at", new Date(now.getTime() - 36 * 3600e3).toISOString()).order("published_at").limit(10);
   let sent = 0;
   for (const v of due || []) {
+    if (v.yt_url && !(await isPublic(v.yt_url))) continue;          // закрыт / запланирован — ждём следующего тика
     await db.from("videos").update({ notified_at: now.toISOString() }).eq("id", v.id);
     const gap = new Date(now.getTime() - NOTIFY_GAP_H * 3600e3).toISOString();
     const { data: users } = await db.from("users").select("tg_id").eq("notify", true).eq("blocked", false)
@@ -246,7 +252,7 @@ async function tick() {
     for (const [i, us] of (users || []).entries()) {
       const r = await tg("sendMessage", {
         chat_id: us.tg_id,
-        text: `🆕 Новая серия ${v.channel}!\n«${v.title}»\n\nВ конце серии — секретный код. Введи его здесь и получи карточку 🃏 (первые 48 часов — тройной набор)`,
+        text: `🆕 Новая серия ${v.channel}!\n«${v.title}»\n\nВ серии спрятан секретный код — смотри внимательно! Введи его здесь и получи карточки 🃏 (первые 48 часов — сразу 3)`,
         reply_markup: { inline_keyboard: [[{ text: "▶ Смотреть", web_app: { url: `${APP}?v=${encodeURIComponent(v.id)}` } }]] },
       });
       if (r?.ok) { sent++; await db.from("users").update({ last_notify: now.toISOString() }).eq("tg_id", us.tg_id); }
@@ -274,7 +280,7 @@ async function hook(upd: any) {
     await tg("sendMessage", {
       chat_id: m.chat.id, reply_markup: openBtn(),
       text: (user.isNew ? "Привет! Это бот сети МультоРетик 👋\n\n" : "С возвращением! 👋\n\n") +
-        "🔔 Пришлю, когда выйдет новая серия.\n🔑 В конце каждой серии есть секретный код из 5 цифр — отправь его сюда или введи в приложении.\n🃏 За коды получаешь карточки ретик-персонажей, а за каждый день входа — ещё одну. Собери всю коллекцию!\n👥 Позови друга — оба получите редкую карточку.",
+        "🔔 Пришлю, когда выйдет новая серия.\n🔑 В каждой серии спрятан секретный код из 5 цифр — он может появиться в любой момент! Отправь его сюда или введи в приложении.\n🃏 За коды получаешь карточки ретик-персонажей, а за каждый день входа — ещё одну. Собери всю коллекцию!\n👥 Позови друга — оба получите редкую карточку.",
     });
     return;
   }
