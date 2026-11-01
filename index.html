@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>МультоРетик</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://ubizzivowukjvrvxkxxh.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;800;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -283,7 +284,7 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
 <div class="modal" id="mdrop"><div class="drop" id="drop"></div></div>
 
 <script>
-const API = "https://ubizzivowukjvrvxkxxh.supabase.co/functions/v1/bot";
+const API = "https://ubizzivowukjvrvxkxxh.supabase.co/functions/v1/bot?forceFunctionRegion=eu-west-1";   // функция рядом с базой — в 3 раза быстрее
 const BOT_NAME = "multoretik_bot";
 const OWNER_IDS = [1202933488];
 const CHANNELS = [
@@ -485,14 +486,24 @@ $("#invite").onclick = () => {
   tg?.openTelegramLink ? tg.openTelegramLink(share) : window.open(share);
 };
 
+const CACHE_KEY = "mr.me.v1";
+function cached() { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch { return null; } }
+function renderAll() { renderTop(); renderFeed(); renderColl(); renderChans(); renderFriends(); }
+(function instant() {                       // мгновенный показ: прошлые данные, свежие придут следом
+  const c = cached();
+  if (c && c.me && c.me.id === tg?.initDataUnsafe?.user?.id) { Object.assign(S, c); renderAll(); }
+  else $("#feed").innerHTML = `<div class="panel empty"><img src="img/retik.webp" alt=""><h3>Загружаю серии…</h3></div>`;
+})();
 async function load() {
   const r = await call("me");
+  if (r.error && cached()) return;
   if (r.error) {
     $("#feed").innerHTML = `<div class="panel empty"><img src="img/retik.webp" alt=""><h3>Открой из бота</h3><p class="muted">${esc(r.error)}</p></div>`;
     return;
   }
   Object.assign(S, r);
-  renderTop(); renderFeed(); renderColl(); renderChans(); renderFriends();
+  try { const {bonus, ...keep} = r; localStorage.setItem(CACHE_KEY, JSON.stringify(keep)); } catch {}
+  renderAll();
   if (r.bonus && !S.bonusShown) {
     S.bonusShown = true;
     const left = 7 - (r.bonus.streak % 7 || 7);
