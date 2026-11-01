@@ -43,9 +43,10 @@ const tg = (method: string, body: unknown) =>
   fetch(`https://api.telegram.org/bot${BOT}/${method}`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   }).then((r) => r.json()).catch(() => ({ ok: false }));
-const later = (p: Promise<unknown>) => {
+const later = (q: PromiseLike<unknown>) => {                       // запросы Supabase — «thenable», а не Promise
+  const p = Promise.resolve(q).catch(() => {});
   const rt = (globalThis as any).EdgeRuntime;
-  rt?.waitUntil ? rt.waitUntil(p.catch(() => {})) : p.catch(() => {});
+  if (rt?.waitUntil) rt.waitUntil(p);
 };
 const mskDay = (d = new Date()) => new Date(d.getTime() + 3 * 3600e3).toISOString().slice(0, 10);
 
