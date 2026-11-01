@@ -23,6 +23,7 @@ const NOTIFY_GAP_H = 3;        // не чаще одного уведомлен�
 const MAX_BAD_CODES = 8;       // неверных кодов в час
 const WEIGHTS: Record<string, number> = { common: 65, rare: 25, epic: 8, legend: 2 };
 const RARE_UP = ["rare", "epic", "legend"];
+const OWNER_IDS = (Deno.env.get("OWNER_IDS") || "1202933488").split(",").map(Number);   // владелец: все карточки + статистика
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -120,9 +121,29 @@ async function daily(user: any) {
   return { streak, coins: DAILY_COINS, pack };
 }
 
+async function ownerStats(id: number) {
+  // владельцу — все карточки коллекции (и новые, когда они появятся)
+  const have = new Set(((await db.from("user_cards").select("card_id").eq("tg_id", id)).data || []).map((r) => r.card_id));
+  const missing = (await cards()).filter((c) => !have.has(c.id)).map((c) => ({ tg_id: id, card_id: c.id }));
+  if (missing.length) await db.from("user_cards").insert(missing);
+  const day = new Date(Date.now() - 86400e3).toISOString();
+  const today = new Date(mskDay() + "T00:00:00+03:00").toISOString();
+  const cnt = async (q: any) => (await q).count || 0;
+  const [users, notify, new24, codes, todayCodes, videos] = await Promise.all([
+    cnt(db.from("users").select("tg_id", { count: "exact", head: true })),
+    cnt(db.from("users").select("tg_id", { count: "exact", head: true }).eq("notify", true).eq("blocked", false)),
+    cnt(db.from("users").select("tg_id", { count: "exact", head: true }).gte("created_at", day)),
+    cnt(db.from("redemptions").select("tg_id", { count: "exact", head: true })),
+    cnt(db.from("redemptions").select("tg_id", { count: "exact", head: true }).gte("at", today)),
+    cnt(db.from("videos").select("id", { count: "exact", head: true }).not("published_at", "is", null)),
+  ]);
+  return { users, notify, new24, codes, today: todayCodes, videos };
+}
+
 async function me(u: TgUser) {
   const user = await upsertUser(u);
   const bonus = await daily(user);
+  const owner = OWNER_IDS.includes(u.id) ? await ownerStats(u.id) : null;
   const [{ data: fresh }, { data: mine }, { data: vids }, { data: top }, { data: done }] = await Promise.all([
     db.from("users").select("coins,streak,subs,notify").eq("tg_id", u.id).single(),
     db.from("user_cards").select("card_id,count").eq("tg_id", u.id),
@@ -136,7 +157,7 @@ async function me(u: TgUser) {
     me: { id: u.id, name: user.name, ...fresh, friends: friends || 0 },
     bonus, cards: await cards(), mine: mine || [], videos: vids || [],
     redeemed: (done || []).map((r) => r.video_id), top: top || [],
-    packPrice: PACK_PRICE,
+    packPrice: PACK_PRICE, owner,
   });
 }
 
