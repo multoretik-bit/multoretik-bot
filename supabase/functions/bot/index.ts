@@ -249,12 +249,21 @@ async function tick() {
     const gap = new Date(now.getTime() - NOTIFY_GAP_H * 3600e3).toISOString();
     const { data: users } = await db.from("users").select("tg_id").eq("notify", true).eq("blocked", false)
       .contains("subs", [v.channel]).or(`last_notify.is.null,last_notify.lt.${gap}`).limit(5000);
+    const ytId = ((v.yt_url || "").match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/) || [])[1];
+    const thumb = v.thumb_url || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null);
+    if (thumb && !v.thumb_url) await db.from("videos").update({ thumb_url: thumb }).eq("id", v.id);   // превью и в ленте приложения
     for (const [i, us] of (users || []).entries()) {
-      const r = await tg("sendMessage", {
+      const send = (m: string, body: any) => tg(m, body);
+      const body: any = {
         chat_id: us.tg_id,
         text: `🆕 Новая серия ${v.channel}!\n«${v.title}»\n\nВ серии спрятан секретный код — смотри внимательно! Введи его здесь и получи карточки 🃏 (первые 48 часов — сразу 3)`,
         reply_markup: { inline_keyboard: [[{ text: "▶ Смотреть", web_app: { url: `${APP}?v=${encodeURIComponent(v.id)}` } }]] },
-      });
+      };
+      let r: any = null;
+      if (thumb) {                                                    // с превьюшкой серии; не вышло — обычным сообщением
+        r = await send("sendPhoto", { chat_id: body.chat_id, photo: thumb, caption: body.text, reply_markup: body.reply_markup });
+      }
+      if (!r?.ok && r?.error_code !== 403) r = await send("sendMessage", body);
       if (r?.ok) { sent++; await db.from("users").update({ last_notify: now.toISOString() }).eq("tg_id", us.tg_id); }
       else if (r?.error_code === 403) await db.from("users").update({ blocked: true }).eq("tg_id", us.tg_id);
       if (i % 25 === 24) await new Promise((s) => setTimeout(s, 1100));   // лимит Telegram ~30 сообщений/с
