@@ -41,7 +41,7 @@ def main():
     extra = json.load(open(os.path.join(ROOT, 'art', 'cartoon_cards.json'), encoding='utf-8'))     # листы 5-8: герои мультиков
     rows = {}
     for sh in extra:
-        SHEETS[sh['sheet']] = [c['id'] for c in sh['cards']]
+        SHEETS[sh['sheet']] = [c['id'] for c in sh['cards']] if len(sh['cards']) == 6 else []   # лист с удалёнными карточками не перерезаем
         for c in sh['cards']:
             rows[c['id']] = (c['name'], sh['channel'], c['rarity'])
     ids = [cid for n, lst in SHEETS.items() for cid in cut(n, lst)]

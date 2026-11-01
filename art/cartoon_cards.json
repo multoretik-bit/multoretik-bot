@@ -112,16 +112,6 @@
   "channel": "МультоРетик",
   "cards": [
    {
-    "id": "ms-masha",
-    "name": "Маша-Ретик",
-    "rarity": "legend"
-   },
-   {
-    "id": "ms-medved",
-    "name": "Медведь-Ретик",
-    "rarity": "epic"
-   },
-   {
     "id": "bb-roza",
     "name": "Роза-Ретик",
     "rarity": "rare"
