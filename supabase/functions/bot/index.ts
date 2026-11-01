@@ -27,7 +27,7 @@ const OWNER_IDS = (Deno.env.get("OWNER_IDS") || "1202933488").split(",").map(Num
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-region",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) =>
@@ -66,7 +66,7 @@ async function upsertUser(u: TgUser, refBy?: number) {
   const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || null;
   const { data: old } = await db.from("users").select("*").eq("tg_id", u.id).maybeSingle();
   if (old) {
-    await db.from("users").update({ username: u.username || null, name, seen_at: new Date().toISOString(), blocked: false }).eq("tg_id", u.id);
+    later(db.from("users").update({ username: u.username || null, name, seen_at: new Date().toISOString(), blocked: false }).eq("tg_id", u.id));
     return { ...old, username: u.username || null, name, isNew: false };
   }
   const ref = refBy && refBy !== u.id ? refBy : null;
@@ -115,9 +115,9 @@ async function daily(user: any) {
   if (user.last_daily === today) return null;
   const yesterday = mskDay(new Date(Date.now() - 86400e3));
   const streak = user.last_daily === yesterday ? user.streak + 1 : 1;
-  await db.from("users").update({ last_daily: today, streak }).eq("tg_id", user.tg_id);
+  const mark = db.from("users").update({ last_daily: today, streak }).eq("tg_id", user.tg_id);
   const prize = streak % 7 === 0 ? await roll(3, true) : await roll(1, false);   // вход за день — 1 случайная карточка, 7-й день подряд — набор из 3
-  const pack = await give(user.tg_id, prize, DAILY_COINS);
+  const [pack] = await Promise.all([give(user.tg_id, prize, DAILY_COINS), mark]);
   return { streak, coins: DAILY_COINS, pack };
 }
 
@@ -142,17 +142,16 @@ async function ownerStats(id: number) {
 
 async function me(u: TgUser) {
   const user = await upsertUser(u);
-  const bonus = await daily(user);
-  const owner = OWNER_IDS.includes(u.id) ? await ownerStats(u.id) : null;
-  const [{ data: fresh }, { data: mine }, { data: vids }, { data: top }, { data: done }] = await Promise.all([
+  const [bonus, owner] = await Promise.all([daily(user), OWNER_IDS.includes(u.id) ? ownerStats(u.id) : null, cards()]);
+  const [{ data: fresh }, { data: mine }, { data: vids }, { data: top }, { data: done }, { count: friends }] = await Promise.all([
     db.from("users").select("coins,streak,subs,notify").eq("tg_id", u.id).single(),
     db.from("user_cards").select("card_id,count").eq("tg_id", u.id),
     db.from("videos").select("id,channel,title,yt_url,vk_url,rt_url,thumb_url,published_at")
       .not("notified_at", "is", null).order("published_at", { ascending: false }).limit(40),
     db.from("leaderboard").select("tg_id,name,unique_cards").limit(20),
     db.from("redemptions").select("video_id").eq("tg_id", u.id),
+    db.from("users").select("tg_id", { count: "exact", head: true }).eq("ref_by", u.id),
   ]);
-  const { count: friends } = await db.from("users").select("tg_id", { count: "exact", head: true }).eq("ref_by", u.id);
   return json({
     me: { id: u.id, name: user.name, ...fresh, friends: friends || 0 },
     bonus, cards: await cards(), mine: mine || [], videos: vids || [],
