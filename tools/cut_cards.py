@@ -38,11 +38,24 @@ def cut(n, ids):
 
 def main():
     os.makedirs(os.path.join(ROOT, 'web', 'cards'), exist_ok=True)
+    extra = json.load(open(os.path.join(ROOT, 'art', 'cartoon_cards.json'), encoding='utf-8'))     # листы 5-8: герои мультиков
+    rows = {}
+    for sh in extra:
+        SHEETS[sh['sheet']] = [c['id'] for c in sh['cards']]
+        for c in sh['cards']:
+            rows[c['id']] = (c['name'], sh['channel'], c['rarity'])
     ids = [cid for n, lst in SHEETS.items() for cid in cut(n, lst)]
     print('нарезано:', len(ids))
     if not ids:
         return
     s = json.load(open(os.path.join(ROOT, 'secrets.local.json'), encoding='utf-8'))
+    new = [i for i in ids if i in rows]
+    if new:
+        q0 = "insert into cards (id, name, channel, rarity, img) values %s on conflict (id) do update set name = excluded.name, img = excluded.img" % ','.join(
+            "('%s','%s','%s','%s','cards/%s.webp')" % (i, rows[i][0], rows[i][1], rows[i][2], i) for i in new)
+        r0 = requests.post('https://api.supabase.com/v1/projects/%s/database/query' % s['supabase_ref'],
+                           headers={'Authorization': 'Bearer ' + s['supabase_pat']}, json={'query': q0}, timeout=60)
+        print('новые карточки в базе:', len(new), r0.status_code)
     q = "update cards set img = 'cards/' || id || '.webp' where id in (%s)" % ','.join("'%s'" % i for i in ids)
     r = requests.post('https://api.supabase.com/v1/projects/%s/database/query' % s['supabase_ref'],
                       headers={'Authorization': 'Bearer ' + s['supabase_pat']}, json={'query': q}, timeout=60)
