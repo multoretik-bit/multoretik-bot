@@ -1,0 +1,146 @@
+[
+ {
+  "sheet": 5,
+  "channel": "КотоРетик",
+  "cards": [
+   {
+    "id": "kt-korzhik",
+    "name": "Коржик-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "kt-karamelka",
+    "name": "Карамелька-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "kt-kompot",
+    "name": "Компот-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-papa",
+    "name": "Папа-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-mama",
+    "name": "Мама-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-nudnik",
+    "name": "Нудник-Ретик",
+    "rarity": "epic"
+   }
+  ]
+ },
+ {
+  "sheet": 6,
+  "channel": "СмешаРетик",
+  "cards": [
+   {
+    "id": "sm-krosh",
+    "name": "Крош-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sm-ezhik",
+    "name": "Ёжик-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "sm-nyusha",
+    "name": "Нюша-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sm-barash",
+    "name": "Бараш-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "sm-losyash",
+    "name": "Лосяш-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "sm-sovunya",
+    "name": "Совунья-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 7,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "lu-luntik",
+    "name": "Лунтик-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "lu-kuzya",
+    "name": "Кузя-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "lu-mila",
+    "name": "Мила-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "fx-nolik",
+    "name": "Нолик-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "fx-simka",
+    "name": "Симка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "fx-dimdimych",
+    "name": "ДимДимыч-Ретик",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 8,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "ms-masha",
+    "name": "Маша-Ретик",
+    "rarity": "legend"
+   },
+   {
+    "id": "ms-medved",
+    "name": "Медведь-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "bb-roza",
+    "name": "Роза-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "bb-druzhok",
+    "name": "Дружок-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-peppa",
+    "name": "Пеппа-Ретик",
+    "rarity": "legend"
+   },
+   {
+    "id": "pp-george",
+    "name": "Джордж-Ретик",
+    "rarity": "epic"
+   }
+  ]
+ }
+]

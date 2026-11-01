@@ -3,7 +3,7 @@
 python promo_render.py ending <код> <voice.mp3> <out.mp4>   концовка с кодом (~длина озвучки + 1.5 с)
 python promo_render.py plashka <voice.mp3> <out.mov>         плашка с альфой (qtrle) для наложения поверх серии
 """
-import math, subprocess, sys
+import math, os, subprocess, sys
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import imageio_ffmpeg
 
@@ -75,10 +75,10 @@ def ending_frame(t, code, total, reveal):
     return im
 
 
-def ending(code, voice, out):
+def ending(code, voice, out, reveal=None):
     total = dur(voice) + 1.5
-    # цифры появляются примерно когда голос их называет (≈ 1.6 с вступления, затем каждые ~0.75 с)
-    reveal = [1.7 + i * 0.75 for i in range(5)]
+    # цифры появляются, когда голос их называет (reveal — из меток времени ElevenLabs; иначе ≈ 1.7 с + 0.75 с на цифру)
+    reveal = reveal or [1.7 + i * 0.75 for i in range(5)]
     p = subprocess.Popen([FF, '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS), '-i', '-',
                           '-i', voice, '-af', 'apad', '-t', '%.2f' % total, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
                           '-c:a', 'aac', '-b:a', '192k', out], stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
@@ -118,8 +118,63 @@ def plashka(voice, out):
     p.stdin.close(); p.wait()
 
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CAPTIONS = [(0.00, 'У МультоРетика свой Telegram-бот!'), (0.22, 'В конце каждой серии — секретный код'),
+            (0.45, 'Вводи коды — собирай карточки героев'), (0.70, 'Позови друга — редкая карточка обоим'),
+            (0.86, 'Telegram  ' + BOT)]
+
+
+def explainer(voice, out):
+    """Ролик-объяснение: фон-лес и герои канала, подписи по ходу озвучки, карточки выпадают веером."""
+    total = dur(voice) + 0.8
+    bg = Image.open(os.path.join(ROOT, 'web', 'img', 'bg.webp')).convert('RGB')
+    bg = bg.resize((W, int(W * bg.height / bg.width))).crop((0, 0, W, H))
+    hero = Image.open(os.path.join(ROOT, 'web', 'img', 'hero.webp')).convert('RGBA')
+    hero = hero.resize((1300, int(1300 * hero.height / hero.width)))
+    cards = []
+    for cid in ('lg-zoloto', 'kr-pyatiglaz', 'sr-luna', 'mr-vedushiy', 'ak-korol'):
+        f = os.path.join(ROOT, 'web', 'cards', cid + '.webp')
+        if os.path.isfile(f):
+            c = Image.open(f).convert('RGBA').resize((230, 230))
+            fr = Image.new('RGBA', (250, 250), (0, 0, 0, 0))
+            ImageDraw.Draw(fr).rounded_rectangle([0, 0, 249, 249], 26, fill=INK + (255,))
+            fr.paste(c, (10, 10)); cards.append(fr)
+    p = subprocess.Popen([FF, '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS), '-i', '-',
+                          '-i', voice, '-af', 'apad', '-t', '%.2f' % total, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
+                          '-c:a', 'aac', '-b:a', '192k', out], stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    for f in range(int(total * FPS)):
+        t = f / FPS
+        im = bg.copy().convert('RGBA')
+        k = ease(t / 0.8)
+        im.alpha_composite(hero, ((W - hero.width) // 2, int(40 - (1 - k) * 400)))
+        d = ImageDraw.Draw(im)
+        cap = [c for s0, c in CAPTIONS if t >= s0 * total][-1]
+        start = [s0 for s0, c in CAPTIONS if c == cap][0] * total
+        kc = ease((t - start) / 0.45)
+        y = int(560 + (1 - kc) * 60)
+        tw = d.textlength(cap, font=font(70))
+        d.rounded_rectangle([W // 2 - tw / 2 - 50, y - 62, W // 2 + tw / 2 + 50, y + 62], 40,
+                            fill=(VIOLET if cap.startswith('Telegram') else (59, 34, 16)) + (235,), outline=INK, width=6)
+        text_c(d, (W // 2, y), cap, font(70), 'white', 6, INK)
+        if t > 0.45 * total:                                   # карточки веером
+            n = len(cards)
+            for i, c in enumerate(cards):
+                kk = ease((t - 0.45 * total - i * 0.18) / 0.6)
+                if kk <= 0:
+                    continue
+                ang = (i - (n - 1) / 2) * 9
+                r = c.rotate(-ang, expand=True, resample=Image.BICUBIC)
+                x = int(W / 2 + (i - (n - 1) / 2) * 230 - r.width / 2)
+                yy = int(H - 300 + abs(i - (n - 1) / 2) * 18 + (1 - kk) * 400)
+                im.alpha_composite(r, (x, yy))
+        p.stdin.write(im.convert('RGB').tobytes())
+    p.stdin.close(); p.wait()
+
+
 if __name__ == '__main__':
     if sys.argv[1] == 'ending':
         ending(sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == 'explainer':
+        explainer(sys.argv[2], sys.argv[3])
     else:
         plashka(sys.argv[2], sys.argv[3])
