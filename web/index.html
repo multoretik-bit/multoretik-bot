@@ -241,7 +241,7 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
   <div class="rules">
     <div class="panel rule"><div class="ic"><svg><use href="#i-clock"/></svg></div><div>Первые <b>48 часов</b> после выхода серии — <b>3 карточки</b>, одна точно редкая</div></div>
     <div class="panel rule"><div class="ic"><svg><use href="#i-star"/></svg></div><div>Позже код тоже работает — <b>1 карточка</b> и монеты</div></div>
-    <div class="panel rule"><div class="ic"><svg><use href="#i-flame"/></svg></div><div>Заходи каждый день: <b>монеты</b>, а на <b>7-й день подряд</b> — бесплатный набор</div></div>
+    <div class="panel rule"><div class="ic"><svg><use href="#i-flame"/></svg></div><div>Заходи каждый день: <b>карточка и монеты</b>, а на <b>7-й день подряд</b> — набор из 3 карточек</div></div>
   </div>
 </section>
 
@@ -495,8 +495,10 @@ async function load() {
   renderTop(); renderFeed(); renderColl(); renderChans(); renderFriends();
   if (r.bonus && !S.bonusShown) {
     S.bonusShown = true;
-    if (r.bonus.pack?.length) drop(`${r.bonus.streak} дней подряд!`, "Бесплатный набор за серию входов", r.bonus.pack);
-    else tg?.showPopup?.({title: "Ежедневный бонус", message: `+${r.bonus.coins} монет. Дней подряд: ${r.bonus.streak}. На 7-й день — бесплатный набор!`});
+    const left = 7 - (r.bonus.streak % 7 || 7);
+    if (r.bonus.pack?.length > 1) drop(`${r.bonus.streak} дней подряд!`, `Бесплатный набор за серию входов · +${r.bonus.coins} монет`, r.bonus.pack);
+    else if (r.bonus.pack?.length) drop("Карточка за вход!", `+${r.bonus.coins} монет · дней подряд: ${r.bonus.streak}` + (left ? ` · до набора: ${left}` : ""), r.bonus.pack);
+    else tg?.showPopup?.({title: "Ежедневный бонус", message: `+${r.bonus.coins} монет. Дней подряд: ${r.bonus.streak}`});
   }
   const want = new URLSearchParams(location.search).get("v");
   if (want && !S.opened) { S.opened = true; const v = S.videos.find((x) => x.id === want); if (v) play(v); }

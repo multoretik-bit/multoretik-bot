@@ -116,7 +116,7 @@ async function daily(user: any) {
   const yesterday = mskDay(new Date(Date.now() - 86400e3));
   const streak = user.last_daily === yesterday ? user.streak + 1 : 1;
   await db.from("users").update({ last_daily: today, streak }).eq("tg_id", user.tg_id);
-  const prize = streak % 7 === 0 ? await roll(3, true) : [];          // каждый 7-й день подряд — набор
+  const prize = streak % 7 === 0 ? await roll(3, true) : await roll(1, false);   // вход за день — 1 случайная карточка, 7-й день подряд — набор из 3
   const pack = await give(user.tg_id, prize, DAILY_COINS);
   return { streak, coins: DAILY_COINS, pack };
 }
@@ -274,7 +274,7 @@ async function hook(upd: any) {
     await tg("sendMessage", {
       chat_id: m.chat.id, reply_markup: openBtn(),
       text: (user.isNew ? "Привет! Это бот сети МультоРетик 👋\n\n" : "С возвращением! 👋\n\n") +
-        "🔔 Пришлю, когда выйдет новая серия.\n🔑 В конце каждой серии есть секретный код из 5 цифр — отправь его сюда или введи в приложении.\n🃏 За коды получаешь карточки ретик-персонажей. Собери всю коллекцию!\n👥 Позови друга — оба получите редкую карточку.",
+        "🔔 Пришлю, когда выйдет новая серия.\n🔑 В конце каждой серии есть секретный код из 5 цифр — отправь его сюда или введи в приложении.\n🃏 За коды получаешь карточки ретик-персонажей, а за каждый день входа — ещё одну. Собери всю коллекцию!\n👥 Позови друга — оба получите редкую карточку.",
     });
     return;
   }
