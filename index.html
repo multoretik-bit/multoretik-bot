@@ -293,6 +293,8 @@ const CHANNELS = [
   {name: "СмешаРетик", img: "img/ch/smesharetik.webp", yt: "UCRO8d9d9yGt7vqxOT7miAoQ", about: "Тёмные истории круглых героев"},
   {name: "SOIKAC", img: "img/ch/soikac.webp", yt: "UC4uPTxTCHrM2BPoLBkjE-kg", about: "Большие сборники серий"},
   {name: "Анти Котополис", img: "img/ch/antikotopolis.webp", yt: "UCdfiZv7KEIpIZgG2-Z8yzPA", about: "Город наоборот"},
+  {name: "ПеппаРетик", img: "img/ch/pepparetik.webp", yt: "UCByKVDhIBzT_9ExZR68G16A", about: "Страшные серии Свинки Пеппы",
+   vk: "https://vkvideo.ru/@pepparetik", rt: "https://rutube.ru/channel/26455013/"},
 ];
 const VK_GROUP = "https://vk.com/club173681168";
 const TG_CHANNEL = "https://t.me/multoretik";
@@ -414,7 +416,7 @@ function renderChans() {
   const subs = new Set(S.me.subs || []);
   $("#chans").innerHTML = CHANNELS.map((c) => `<div class="panel chn"><img src="${c.img}" alt="">
     <div style="min-width:0"><div class="nm">${esc(c.name)}</div><div class="muted" style="font-size:12px">${esc(c.about)}</div>
-    <div class="links"><a class="lk yt" href="https://www.youtube.com/channel/${c.yt}" data-ext>YouTube</a><a class="lk vk" href="${VK_GROUP}" data-ext>VK</a><a class="lk tg" href="${TG_CHANNEL}" data-tg>Telegram</a></div></div>
+    <div class="links"><a class="lk yt" href="https://www.youtube.com/channel/${c.yt}" data-ext>YouTube</a><a class="lk vk" href="${c.vk || VK_GROUP}" data-ext>VK</a>${c.rt ? `<a class="lk rt" href="${c.rt}" data-ext>RuTube</a>` : ""}<a class="lk tg" href="${TG_CHANNEL}" data-tg>Telegram</a></div></div>
     <button class="switch ${subs.has(c.name) ? "on" : ""}" data-c="${esc(c.name)}" aria-label="Уведомления ${esc(c.name)}"></button></div>`).join("");
   $("#chans").querySelectorAll(".switch").forEach((b) => b.onclick = () => {
     b.classList.toggle("on");
