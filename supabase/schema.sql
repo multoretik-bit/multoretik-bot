@@ -11,7 +11,7 @@ create table if not exists users (
   coins        int not null default 0 check (coins >= 0),
   streak       int not null default 0,               -- дней подряд
   last_daily   date,                                 -- день последнего ежедневного бонуса (Europe/Moscow)
-  subs         text[] not null default array['МультоРетик','КотоРетик','СмешаРетик','SOIKAC','Анти Котополис','ПеппаРетик'],
+  subs         text[] not null default array['МультоРетик','КотоРетик','СмешаРетик','ПеппаРетик','БарбоРетик','SOIKAC','Анти Котополис'],
   notify       boolean not null default true,
   blocked      boolean not null default false,       -- пользователь заблокировал бота (403) — не слать
   last_notify  timestamptz,
