@@ -132,5 +132,329 @@
     "rarity": "epic"
    }
   ]
+ },
+ {
+  "sheet": 9,
+  "channel": "КотоРетик",
+  "cards": [
+   {
+    "id": "kt-sazhik",
+    "name": "Сажик-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "kt-gonya",
+    "name": "Гоня-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-lapochka",
+    "name": "Лапочка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-pugovka",
+    "name": "Пуговка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "kt-babushka",
+    "name": "Бабушка-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "kt-dedushka",
+    "name": "Дедушка-Ретик",
+    "rarity": "epic"
+   }
+  ]
+ },
+ {
+  "sheet": 10,
+  "channel": "СмешаРетик",
+  "cards": [
+   {
+    "id": "sm-pin",
+    "name": "Пин-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sm-kopatych",
+    "name": "Копатыч-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "sm-karkarych",
+    "name": "Кар-Карыч-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "sm-bibi",
+    "name": "Биби-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sm-pandochka",
+    "name": "Пандочка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "sm-robonyusha",
+    "name": "Робо-Нюша-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 11,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "bb-gena",
+    "name": "Гена-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "bb-liza",
+    "name": "Лиза-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "bb-malysh",
+    "name": "Малыш-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "bb-papa",
+    "name": "Папа Барбоскин-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "bb-mama",
+    "name": "Мама Барбоскина-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "bb-timokha",
+    "name": "Тимоха-Ретик",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 12,
+  "channel": "ПеппаРетик",
+  "cards": [
+   {
+    "id": "pp-papa",
+    "name": "Папа Свин-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-mama",
+    "name": "Мама Свинка-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-babushka",
+    "name": "Бабушка Свинка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-dedushka",
+    "name": "Дедушка Свин-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-suzi",
+    "name": "Сьюзи Овечка-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-rebekka",
+    "name": "Ребекка Крольчиха-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 13,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "lu-vupsen",
+    "name": "Вупсень-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "lu-pupsen",
+    "name": "Пупсень-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "lu-kapa",
+    "name": "Баба Капа-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "lu-sher",
+    "name": "Генерал Шер-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "lu-pchelenok",
+    "name": "Пчелёнок-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "lu-korney",
+    "name": "Корней Корнеевич-Ретик",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 14,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "fx-papus",
+    "name": "Папус-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "fx-masya",
+    "name": "Мася-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "fx-fayer",
+    "name": "Файер-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "fx-igrek",
+    "name": "Игрек-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "fx-shpulya",
+    "name": "Шпуля-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "fx-verta",
+    "name": "Верта-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 15,
+  "channel": "SOIKAC",
+  "cards": [
+   {
+    "id": "so-podval",
+    "name": "Подвальный Кот",
+    "rarity": "legend"
+   },
+   {
+    "id": "so-kukla",
+    "name": "Кукла из Подвала",
+    "rarity": "epic"
+   },
+   {
+    "id": "so-maska",
+    "name": "Маска в Кустах",
+    "rarity": "rare"
+   },
+   {
+    "id": "so-telefon",
+    "name": "Игрушечный Телефон",
+    "rarity": "common"
+   },
+   {
+    "id": "so-mayak",
+    "name": "Клоун с Маяка",
+    "rarity": "rare"
+   },
+   {
+    "id": "so-kasseta",
+    "name": "Кассета «Будь плохой»",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 16,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "mr-zerkalo",
+    "name": "Двойник в Зеркале",
+    "rarity": "epic"
+   },
+   {
+    "id": "mr-nyanya",
+    "name": "Няня Тишина",
+    "rarity": "rare"
+   },
+   {
+    "id": "mr-mama-molchit",
+    "name": "Молчаливая Мама",
+    "rarity": "legend"
+   },
+   {
+    "id": "mr-virus",
+    "name": "Вирусный Папа",
+    "rarity": "rare"
+   },
+   {
+    "id": "mr-rozetka",
+    "name": "Кот из Розетки",
+    "rarity": "common"
+   },
+   {
+    "id": "mr-pomehi2",
+    "name": "Человек из Помех",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 17,
+  "channel": "Анти Котополис",
+  "cards": [
+   {
+    "id": "ak-korzhik",
+    "name": "Анти-Коржик",
+    "rarity": "rare"
+   },
+   {
+    "id": "ak-karamelka",
+    "name": "Анти-Карамелька",
+    "rarity": "rare"
+   },
+   {
+    "id": "ak-kompot",
+    "name": "Анти-Компот",
+    "rarity": "common"
+   },
+   {
+    "id": "ak-papa",
+    "name": "Анти-Папа",
+    "rarity": "legend"
+   },
+   {
+    "id": "ak-mama",
+    "name": "Анти-Мама",
+    "rarity": "epic"
+   },
+   {
+    "id": "ak-sazhik",
+    "name": "Анти-Сажик",
+    "rarity": "common"
+   }
+  ]
  }
 ]
