@@ -23,7 +23,8 @@ create table if not exists bosses (
   hp          int not null,
   max_hp      int not null,
   defeated_at timestamptz,
-  last_hit_by bigint
+  last_hit_by bigint,
+  announced_at timestamptz                           -- когда бот разослал всем «новый босс дня»
 );
 create table if not exists boss_hits (
   day     date,

@@ -164,17 +164,20 @@ async function me(u: TgUser) {
     db.from("users").select("tg_id", { count: "exact", head: true }).eq("ref_by", u.id),
   ]);
   const freshList = await freshP;
-  const [{ data: qz }, { data: qa }, { data: sc }] = await Promise.all([
+  const [{ data: qz }, { data: qa }, { data: sc }, bossRow] = await Promise.all([
     db.from("quizzes").select("video_id").in("video_id", (vids || []).map((v) => v.id)),
     db.from("quiz_answers").select("video_id,correct").eq("tg_id", u.id),
     db.from("set_claims").select("channel").eq("tg_id", u.id),
+    bossToday().catch(() => null),
   ]);
+  const bossCard = bossRow ? (await cards()).find((c) => c.id === bossRow.card_id) : null;
   return json({
     me: { id: u.id, name: user.name, ...fresh, friends: friends || 0 },
     bonus, cards: await cards(), mine: mine || [], videos: vids || [],
     redeemed: (done || []).map((r) => r.video_id), top: top || [],
     packPrice: PACK_PRICE, owner, fresh: freshList,
     quizzes: (qz || []).map((q) => q.video_id), quizDone: Object.fromEntries((qa || []).map((q) => [q.video_id, q.correct])),
+    boss: bossCard ? { card: pub(bossCard), hp: bossRow.hp, max: bossRow.max_hp, defeated: !!bossRow.defeated_at } : null,
     sets: (sc || []).map((x) => x.channel), spinToday: fresh?.last_spin === mskDay(), wheel: WHEEL.map(({ w, ...x }) => x),
   });
 }
@@ -309,11 +312,9 @@ async function bossClaim(u: TgUser) {
   const { data: ok } = await db.from("boss_hits").update({ claimed: true }).eq("day", b.day).eq("tg_id", u.id)
     .eq("claimed", false).gte("hits", BOSS_MIN_HITS).select("tg_id");
   if (!ok?.length) return json({ error: `Награда — тем, кто нанёс от ${BOSS_MIN_HITS} ударов` }, 400);
-  const list = await roll(1, true);
-  if (b.last_hit_by === u.id) {                        // последний удар — сама карточка босса
-    const bc = (await cards()).find((c) => c.id === b.card_id);
-    if (bc) list.push(bc);
-  }
+  const bc = (await cards()).find((c) => c.id === b.card_id);   // каждому участнику — сама карточка босса
+  const list = bc ? [bc] : [];
+  if (b.last_hit_by === u.id) list.push(...(await roll(1, true)));   // последний удар — ещё и редкая
   return json({ ok: true, cards: await give(u.id, list, 15), coins: 15, killer: b.last_hit_by === u.id });
 }
 
@@ -382,6 +383,32 @@ async function setClaim(u: TgUser, channel: string) {
   const ins = await db.from("set_claims").insert({ tg_id: u.id, channel: String(channel) });
   if (ins.error) return json({ error: "Награда за этот набор уже получена" }, 409);
   return json({ ok: true, coins: SET_COINS, cards: await give(u.id, await roll(1, true), SET_COINS) });
+}
+
+const BOSS_HOUR = 12;           // во сколько по Москве бот рассказывает всем о новом боссе
+const appUrl = (path: string) => new URL(path, APP.endsWith("/") ? APP : APP + "/").toString();
+async function announceBoss() {
+  const mskHour = new Date(Date.now() + 3 * 3600e3).getUTCHours();
+  if (mskHour < BOSS_HOUR) return 0;
+  const b = await bossToday();
+  if (!b || b.defeated_at) return 0;
+  const { data: mark } = await db.from("bosses").update({ announced_at: new Date().toISOString() }).eq("day", b.day)
+    .is("announced_at", null).select("day");
+  if (!mark?.length) return 0;                                        // уже разослано (или рассылает другой тик)
+  const card = (await cards()).find((c) => c.id === b.card_id);
+  if (!card) return 0;
+  const { data: users } = await db.from("users").select("tg_id").eq("notify", true).eq("blocked", false).limit(5000);
+  const text = `⚔️ Новый босс дня — «${card.name}»!\n\nБьём его все вместе до полуночи. Победим — каждый, кто нанёс от ${BOSS_MIN_HITS} ударов, получит эту карточку себе в коллекцию.\n\nЗаходи и жми по боссу 👇`;
+  const reply_markup = { inline_keyboard: [[{ text: "⚔️ Бить босса", web_app: { url: `${APP}?tab=games` } }]] };
+  let sent = 0;
+  for (const [i, us] of (users || []).entries()) {
+    let r: any = await tg("sendPhoto", { chat_id: us.tg_id, photo: appUrl(`boss/${card.id}.jpg`), caption: text, reply_markup });
+    if (!r?.ok && r?.error_code !== 403) r = await tg("sendMessage", { chat_id: us.tg_id, text, reply_markup });
+    if (r?.ok) sent++;
+    else if (r?.error_code === 403) await db.from("users").update({ blocked: true }).eq("tg_id", us.tg_id);
+    if (i % 25 === 24) await new Promise((res) => setTimeout(res, 1100));
+  }
+  return sent;
 }
 
 // RETIKO: вопросы викторины по сценарию серии
@@ -460,7 +487,9 @@ async function tick() {
       if (i % 25 === 24) await new Promise((s) => setTimeout(s, 1100));   // лимит Telegram ~30 сообщений/с
     }
   }
-  return json({ ok: true, videos: (due || []).length, sent });
+  let boss = 0;
+  try { boss = await announceBoss(); } catch (_) { /* босс не должен ломать рассылку серий */ }
+  return json({ ok: true, videos: (due || []).length, sent, boss });
 }
 
 // ---------------------------------------------------------------- вебхук

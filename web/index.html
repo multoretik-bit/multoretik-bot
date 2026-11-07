@@ -259,6 +259,31 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
 .setclaim{display:flex;gap:12px;align-items:center;padding:12px;margin-bottom:12px;width:100%;text-align:left}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:40;background:var(--panel);border:3px solid var(--line);border-radius:14px;padding:9px 14px;font-size:14px;box-shadow:0 4px 0 var(--line);transition:.2s;pointer-events:none;max-width:90%;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+/* 07.11 вечер: спокойнее — плитки игр, полоска босса в ленте, окно колеса */
+.panel{box-shadow:0 4px 0 var(--line)}
+.hint.slim{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:3px solid var(--line);border-radius:var(--r);box-shadow:0 4px 0 var(--line)}
+.hint.slim .k{width:40px;height:40px;border-radius:12px;box-shadow:none;border-width:2px}
+.hint.slim b{-webkit-text-stroke:0;font-size:15px}
+.hint.slim p{color:var(--muted);font-size:12px}
+.bstrip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;margin-top:12px}
+.bstrip img{width:54px;height:54px;border-radius:12px;border:2px solid var(--epic);object-fit:cover;flex:none;background:#24143D}
+.bsm{flex:1;min-width:0}
+.bst{display:flex;align-items:center;gap:8px;font-family:Rubik;font-size:15px;min-width:0}
+.bst b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge2.sm{font-size:11px;padding:0 7px;border-width:2px;box-shadow:none;flex:none}
+.hp.sm{height:10px;border-width:2px;margin-top:8px}
+.bsgo{flex:none;background:var(--red);color:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 14px;font-family:Rubik;font-weight:900;box-shadow:0 3px 0 var(--line)}
+.gtiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.gtile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:14px}
+.gtile b{font-family:Rubik;font-size:16px;margin-top:6px}
+.gtile .muted{font-size:12px}
+.gi{width:42px;height:42px;border-radius:12px;border:2px solid var(--line);display:grid;place-items:center}
+.gi svg{width:24px;height:24px;color:var(--line)}
+.title.small{font-size:18px;-webkit-text-stroke:4px var(--line);margin:22px 2px 10px}
+.wbox{width:100%;max-width:400px;text-align:center}
+.wbox h3{font-size:20px}
+.btn.ghost{background:transparent;border:2px solid rgba(201,168,255,.35);border-radius:14px;color:var(--muted);-webkit-text-stroke:0;font-size:16px;padding:11px;margin-top:10px;box-shadow:none}
+.bossp .btop div:nth-child(n+4){display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -293,12 +318,13 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
 
 <section class="view on" id="v-feed">
   <div class="hero"><img src="img/hero.webp" alt="Персонажи МультоРетика"></div>
-  <div class="plank hint">
+  <div class="hint slim">
     <div class="k"><svg width="28" height="28" style="color:#0E0719"><use href="#i-key"/></svg></div>
     <div><b>В каждой серии спрятан код</b><p>Он может появиться в любой момент — смотри внимательно!</p></div>
   </div>
-  <button class="plank games-hint" id="ghint"><div class="k" style="flex:none;width:46px;height:46px;border-radius:14px;background:var(--red);border:3px solid var(--line);display:grid;place-items:center;box-shadow:0 3px 0 var(--line)"><svg width="28" height="28"><use href="#i-sword"/></svg></div>
-    <div class="hint" style="padding:0;margin:0;display:block"><b>Босс дня, колесо и викторины</b><p id="ghintp">Бей босса вместе со всеми — награда каждому</p></div></button>
+  <button class="panel bstrip" id="ghint" style="display:none"><img id="bsimg" alt="">
+    <div class="bsm"><div class="bst"><span class="badge2 sm">Босс дня</span><b id="bsname"></b></div><div class="hp sm"><i id="bshp"></i></div></div>
+    <span class="bsgo">Бить</span></button>
   <div class="filters" id="filters"></div>
   <div id="feed"></div>
 </section>
@@ -329,17 +355,11 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
 
 <section class="view" id="v-games">
   <div class="panel bossp" id="boss"><div class="muted">Загружаю босса…</div></div>
-  <div class="panel gpanel" id="wheelp">
-    <h3>Колесо удачи</h3><p class="muted">Раз в день — монеты или карточка</p>
-    <div class="wheelbox" id="wheelbox"></div>
-    <button class="btn gold" id="spin"><svg><use href="#i-star"/></svg><span id="spint">Крутить бесплатно</span></button>
+  <div class="gtiles">
+    <button class="panel gtile" id="gwheel"><span class="gi" style="background:var(--gold)"><svg><use href="#i-star"/></svg></span><b>Колесо удачи</b><span class="muted" id="gwheelt">раз в день</span></button>
+    <button class="panel gtile" id="pplay"><span class="gi" style="background:var(--lilac)"><svg><use href="#i-game"/></svg></span><b>Найди пару</b><span class="muted" id="pbest"></span></button>
   </div>
-  <div class="panel gpanel">
-    <h3>Найди пару</h3><p class="muted" id="pbest"></p>
-    <div class="pairs-prev"><span><svg><use href="#i-q"/></svg></span><span><svg><use href="#i-q"/></svg></span><span><svg><use href="#i-q"/></svg></span></div>
-    <button class="btn plank" id="pplay"><svg><use href="#i-game"/></svg>Играть</button>
-  </div>
-  <h2 class="title"><svg><use href="#i-key"/></svg>Викторины по сериям</h2>
+  <h2 class="title small">Викторины по сериям</h2>
   <div id="quizlist"></div>
 </section>
 
@@ -369,6 +389,10 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
 <div class="modal" id="mplayer"><div class="player"><div id="frame"></div><div class="src" id="srcs"></div>
   <div class="ph"><img src="img/retik.webp" alt="">Смотри внимательно — код может появиться в любой момент!</div></div></div>
 <div class="modal" id="mdrop"><div class="drop" id="drop"></div></div>
+<div class="modal" id="mwheel"><div class="panel wbox"><h3>Колесо удачи</h3><p class="muted" style="margin:4px 0 0;font-size:13px">Раз в день — монеты или карточка</p>
+  <div class="wheelbox" id="wheelbox"></div>
+  <button class="btn gold" id="spin"><svg><use href="#i-star"/></svg><span id="spint">Крутить бесплатно</span></button>
+  <button class="btn ghost" id="wclose">Закрыть</button></div></div>
 <div class="modal" id="mquiz"><div class="qbox" id="quiz"></div></div>
 <div class="modal" id="mpairs"><div class="pbox panel" id="pairs"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -617,16 +641,14 @@ async function loadBoss(quiet) {
 function renderBoss() {
   const b = B.st;
   if (!b || !b.card) { $("#boss").innerHTML = `<div class="muted">Босс скоро появится</div>`; return; }
-  const claim = b.canClaim ? `<button class="btn gold" id="bclaim">${icon("i-gift")}Забрать награду${b.killer ? " и карточку босса" : ""}</button>`
-    : b.defeated && b.claimed ? `<p class="muted" style="margin-top:12px">Награда получена. Завтра — новый босс!</p>`
-    : b.defeated ? `<p class="muted" style="margin-top:12px">Босса победили без тебя. Нужно было ${b.need} ударов — завтра новый!</p>` : "";
+  const claim = b.canClaim ? `<button class="btn gold" id="bclaim">${icon("i-gift")}Забрать карточку босса</button>`
+    : b.defeated && b.claimed ? `<p class="muted" style="margin-top:12px">Карточка у тебя. Завтра — новый босс</p>`
+    : b.defeated ? `<p class="muted" style="margin-top:12px">Победили без тебя — завтра новый босс</p>` : "";
   $("#boss").innerHTML = `<div class="bh"><span class="badge2">${icon("i-sword", 18)}Босс дня</span><span class="muted" id="bleft">${b.defeated ? "повержен" : "сбежит через " + mskLeft()}</span></div>
     <button class="bossart ${b.defeated ? "dead" : ""}" id="bossart" aria-label="Ударить босса">${cardHtml(b.card, 0, true)}${b.defeated ? `<span class="deadtag">Повержен!</span>` : ""}</button>
-    <div class="bname">${esc(b.card.name)}</div>
     <div class="hp"><i id="hpbar"></i><span id="hptext"></span></div>
-    <div class="bmeta"><span>Твои удары: <b id="bmy">0</b> / ${b.energy}</span><span>награда от ${b.need}</span></div>
-    ${claim}<div class="btop" id="btop"></div>
-    <p class="muted" style="font-size:12px;margin:10px 0 0">Бейте вместе! Победят до полуночи — каждому, кто нанёс от ${b.need} ударов, редкая карточка. Последний удар — сама карточка босса</p>`;
+    <div class="bmeta"><span>удары <b id="bmy">0</b>/${b.energy}</span><span>${b.need}+ ударов — карточка твоя</span></div>
+    ${claim}<div class="btop" id="btop"></div>`;
   updBoss();
   const art = $("#bossart");
   art.addEventListener("pointerdown", tapBoss);
@@ -636,7 +658,7 @@ function renderBoss() {
     const r = await call("boss_claim");
     if (r.error) { toast(r.error); $("#bclaim").disabled = false; return; }
     B.st.canClaim = false; B.st.claimed = true; renderBoss();
-    drop(r.killer ? "Последний удар!" : "Босс повержен!", `+${r.coins} монет · ${r.killer ? "карточка босса твоя" : "награда за командную победу"}`, r.cards);
+    drop("Босс повержен!", `+${r.coins} монет${r.killer ? " · за последний удар — ещё карточка" : ""}`, r.cards);
   };
 }
 function updBoss() {
@@ -679,8 +701,7 @@ const WCOL = ["#C15BFF", "#FFC83A", "#4AA8FF", "#3EE0A1", "#FF7A2C", "#E39BFF", 
 const wLabel = (w) => w.kind === "coins" ? `+${w.n}` : w.r === "epic" ? "Эпик" : w.r === "rare" ? "Редкая" : "Карта";
 function renderWheel() {
   const W = S.wheel || [];
-  if (!W.length) { $("#wheelp").style.display = "none"; return; }
-  $("#wheelp").style.display = "";
+  if (!W.length) return;
   const n = W.length, a = 360 / n, P = (deg, r = 48) => [50 + r * Math.sin(deg * Math.PI / 180), 50 - r * Math.cos(deg * Math.PI / 180)];
   const seg = W.map((w, i) => {
     const [x0, y0] = P(i * a - a / 2), [x1, y1] = P(i * a + a / 2);
@@ -695,6 +716,7 @@ function renderWheel() {
   const used = S.spinToday;
   $("#spin").disabled = !!used;
   $("#spint").textContent = used ? "Завтра снова" : "Крутить бесплатно";
+  $("#gwheelt").textContent = used ? "завтра снова" : "крути бесплатно";
 }
 $("#spin").onclick = async () => {
   $("#spin").disabled = true;
@@ -708,6 +730,7 @@ $("#spin").onclick = async () => {
   tg?.HapticFeedback?.impactOccurred("medium");
   setTimeout(() => {
     renderWheel();
+    $("#mwheel").classList.remove("on");
     if (r.cards?.length) drop("Колесо удачи!", "Тебе выпала карточка", r.cards);
     else { addCoins(r.coins); sparkles(innerWidth / 2, innerHeight / 3, 14); tg?.HapticFeedback?.notificationOccurred("success"); toast(`Колесо удачи: +${r.coins} монет`); }
   }, 4300);
@@ -762,12 +785,15 @@ async function winPairs() {
   renderGames();
 }
 $("#pplay").onclick = startPairs;
+$("#gwheel").onclick = () => { renderWheel(); $("#mwheel").classList.add("on"); };
+$("#wclose").onclick = () => $("#mwheel").classList.remove("on");
 
 // викторины по сериям
 function quizList() { return S.videos.filter((v) => (S.quizzes || []).includes(v.id)); }
 function renderGames() {
   let best = null; try { best = JSON.parse(localStorage.getItem("mr.pairs.best") || "null"); } catch {}
-  $("#pbest").textContent = best ? `Рекорд: ${best.moves} ходов` : "Открой все пары за меньшее число ходов";
+  $("#pbest").textContent = best ? `рекорд: ${best.moves} ходов` : "+5 монет за победу";
+  renderBossStrip();
   renderWheel();
   const list = quizList();
   $("#quizlist").innerHTML = list.length ? list.slice(0, 12).map((v, i) => {
@@ -844,6 +870,14 @@ setInterval(() => {                           // босс: чужие удары
   if ($("#bleft") && B.st && !B.st.defeated) $("#bleft").textContent = "сбежит через " + mskLeft();
 }, 5000);
 $("#ghint").onclick = () => show("games");
+function renderBossStrip() {
+  const b = (B.st && B.st.card) ? B.st : S.boss;
+  if (!b || !b.card) { $("#ghint").style.display = "none"; return; }
+  $("#ghint").style.display = "";
+  $("#bsimg").src = b.card.img; $("#bsname").textContent = b.card.name;
+  $("#bshp").style.width = (b.max ? Math.max(0, b.hp) / b.max * 100 : 0) + "%";
+  $("#ghint .bsgo").textContent = b.defeated ? "Повержен" : "Бить";
+}
 
 const CACHE_KEY = "mr.me.v1";
 function cached() { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch { return null; } }
@@ -870,6 +904,8 @@ async function load() {
     else if (r.bonus.pack?.length) drop("Карточка за вход!", `+${r.bonus.coins} монет · дней подряд: ${r.bonus.streak}` + (left ? ` · до набора: ${left}` : ""), r.bonus.pack);
     else tg?.showPopup?.({title: "Ежедневный бонус", message: `+${r.bonus.coins} монет. Дней подряд: ${r.bonus.streak}`});
   }
+  const tab = new URLSearchParams(location.search).get("tab");
+  if (tab && !S.tabbed) { S.tabbed = true; show(tab); }
   const want = new URLSearchParams(location.search).get("v");
   if (want && !S.opened) { S.opened = true; const v = S.videos.find((x) => x.id === want); if (v) play(v); }
 }
