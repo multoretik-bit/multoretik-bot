@@ -270,7 +270,7 @@ async function bossToday() {
     const card = pool[seed % pool.length];
     const since = new Date(Date.now() - 3 * 86400e3).toISOString();
     const { count } = await db.from("users").select("tg_id", { count: "exact", head: true }).gte("seen_at", since);
-    const hp = Math.max(1000, Math.round(((count || 0) * 120) / 100) * 100);   // ~ по 120 ударов на каждого, кто заходил за 3 дня
+    const hp = Math.max(1000, Math.round(((count || 0) * 70) / 100) * 100);    // ~ по 70 ударов на каждого, кто заходил за 3 дня
     await db.from("bosses").insert({ day, card_id: card?.id, hp, max_hp: hp });
     b = (await db.from("bosses").select("*").eq("day", day).single()).data;
   }
