@@ -647,7 +647,7 @@ function renderBoss() {
   $("#boss").innerHTML = `<div class="bh"><span class="badge2">${icon("i-sword", 18)}Босс дня</span><span class="muted" id="bleft">${b.defeated ? "повержен" : "сбежит через " + mskLeft()}</span></div>
     <button class="bossart ${b.defeated ? "dead" : ""}" id="bossart" aria-label="Ударить босса">${cardHtml(b.card, 0, true)}${b.defeated ? `<span class="deadtag">Повержен!</span>` : ""}</button>
     <div class="hp"><i id="hpbar"></i><span id="hptext"></span></div>
-    <div class="bmeta"><span>удары <b id="bmy">0</b>/${b.energy}</span><span>${b.need}+ ударов — карточка твоя</span></div>
+    <div class="bmeta"><span>твои удары: <b id="bmy">0</b></span><span>${b.need}+ ударов — карточка твоя</span></div>
     ${claim}<div class="btop" id="btop"></div>`;
   updBoss();
   const art = $("#bossart");

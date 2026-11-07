@@ -228,7 +228,7 @@ async function subs(u: TgUser, list: unknown, notify: unknown) {
 }
 
 // ---------------------------------------------------------------- интерактивы (07.11)
-const BOSS_ENERGY = 300;       // ударов по боссу в день на человека
+const BOSS_ENERGY = 1_000_000; // без дневного лимита ударов (07.11, пользователь: «можно сколько угодно кликать»); от автокликера — ≤15 ударов/с в boss_hit
 const BOSS_MIN_HITS = 30;      // столько ударов — и участник получает награду, если босса победили
 const QUIZ_COIN = 5, QUIZ_ALL = 10;
 const GAME_WINS = 3, GAME_COIN = 5;   // «Найди пару»: монеты за первые 3 победы дня
@@ -273,7 +273,7 @@ async function bossToday() {
     const card = pool[seed % pool.length];
     const since = new Date(Date.now() - 3 * 86400e3).toISOString();
     const { count } = await db.from("users").select("tg_id", { count: "exact", head: true }).gte("seen_at", since);
-    const hp = Math.max(1000, Math.round(((count || 0) * 70) / 100) * 100);    // ~ по 70 ударов на каждого, кто заходил за 3 дня
+    const hp = Math.max(3000, Math.round(((count || 0) * 250) / 100) * 100);   // ~ по 250 ударов на каждого, кто заходил за 3 дня
     await db.from("bosses").insert({ day, card_id: card?.id, hp, max_hp: hp });
     b = (await db.from("bosses").select("*").eq("day", day).single()).data;
   }
