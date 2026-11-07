@@ -456,5 +456,329 @@
     "rarity": "common"
    }
   ]
+ },
+ {
+  "sheet": 18,
+  "channel": "КотоРетик",
+  "cards": [
+   {
+    "id": "kr-kurer",
+    "name": "Ночной курьер",
+    "rarity": "rare"
+   },
+   {
+    "id": "kr-parikmaher",
+    "name": "Странный парикмахер",
+    "rarity": "epic"
+   },
+   {
+    "id": "kr-doktor",
+    "name": "Странный доктор",
+    "rarity": "rare"
+   },
+   {
+    "id": "kr-printer",
+    "name": "Странный принтер",
+    "rarity": "common"
+   },
+   {
+    "id": "kr-telefon",
+    "name": "Странный телефон",
+    "rarity": "common"
+   },
+   {
+    "id": "kr-lishniy",
+    "name": "Лишний котёнок",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 19,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "mr-ded-zaranee",
+    "name": "Дедушка, который знает заранее",
+    "rarity": "epic"
+   },
+   {
+    "id": "mr-slasten",
+    "name": "Повар Сластён",
+    "rarity": "rare"
+   },
+   {
+    "id": "mr-uchitelnica",
+    "name": "Странная учительница",
+    "rarity": "rare"
+   },
+   {
+    "id": "mr-drugaya-karamelka",
+    "name": "Другая Карамелька",
+    "rarity": "epic"
+   },
+   {
+    "id": "mr-babushka-ranshe",
+    "name": "Бабушка, приехавшая раньше",
+    "rarity": "common"
+   },
+   {
+    "id": "mr-mama-ne-morgaet",
+    "name": "Мама, которая не моргает",
+    "rarity": "legend"
+   }
+  ]
+ },
+ {
+  "sheet": 20,
+  "channel": "СмешаРетик",
+  "cards": [
+   {
+    "id": "sr-nenast-barash",
+    "name": "Ненастоящий Бараш",
+    "rarity": "rare"
+   },
+   {
+    "id": "sr-zavodnaya-nyusha",
+    "name": "Заводная Нюша",
+    "rarity": "epic"
+   },
+   {
+    "id": "sr-nenast-karkarych",
+    "name": "Ненастоящий Кар-Карыч",
+    "rarity": "rare"
+   },
+   {
+    "id": "sr-zastyvshaya",
+    "name": "Застывшая Пандочка",
+    "rarity": "common"
+   },
+   {
+    "id": "sr-zavodnoy-karkarych",
+    "name": "Заводной Кар-Карыч",
+    "rarity": "common"
+   },
+   {
+    "id": "sr-sovunya-polnoch",
+    "name": "Совунья в полночь",
+    "rarity": "epic"
+   }
+  ]
+ },
+ {
+  "sheet": 21,
+  "channel": "ПеппаРетик",
+  "cards": [
+   {
+    "id": "pp-papa-nochnoy",
+    "name": "Ночной Папа Свин",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-strannyi-george",
+    "name": "Странный Джордж",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-nenast-suzi",
+    "name": "Ненастоящая Сьюзи",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-ded-golos",
+    "name": "Дедушка с другим голосом",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-pedro",
+    "name": "Педро Пони-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-denni",
+    "name": "Дэнни Пёс-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 22,
+  "channel": "ПеппаРетик",
+  "cards": [
+   {
+    "id": "pp-zoe",
+    "name": "Зои Зебра-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-kendi",
+    "name": "Кэнди Кошка-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "pp-gazel",
+    "name": "Мадам Газель-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-teddy",
+    "name": "Плюшевый Тедди",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-dino",
+    "name": "Мистер Динозавр-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-luzha",
+    "name": "Лужа, которая смотрит",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 23,
+  "channel": "БарбоРетик",
+  "cards": [
+   {
+    "id": "bb-roza-znaet",
+    "name": "Роза, которая знает",
+    "rarity": "epic"
+   },
+   {
+    "id": "bb-strannaya-liza",
+    "name": "Странная Лиза",
+    "rarity": "rare"
+   },
+   {
+    "id": "bb-babushka",
+    "name": "Бабушка Барбоскиных-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "bb-dedushka",
+    "name": "Дедушка Барбоскин-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "bb-lishniy",
+    "name": "Лишний Барбоскин",
+    "rarity": "legend"
+   },
+   {
+    "id": "bb-oshejnik",
+    "name": "Ошейник без собаки",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 24,
+  "channel": "SOIKAC",
+  "cards": [
+   {
+    "id": "so-krolik",
+    "name": "Кролик — хозяин города",
+    "rarity": "epic"
+   },
+   {
+    "id": "so-teoretik",
+    "name": "Теоретик с красной нитью",
+    "rarity": "rare"
+   },
+   {
+    "id": "so-arhiv",
+    "name": "Архив удалённых серий",
+    "rarity": "common"
+   },
+   {
+    "id": "so-nochnoy-efir",
+    "name": "Ночной эфир",
+    "rarity": "common"
+   },
+   {
+    "id": "so-glaz",
+    "name": "Глаз за кадром",
+    "rarity": "rare"
+   },
+   {
+    "id": "so-podskazka",
+    "name": "Подсказка в титрах",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 25,
+  "channel": "Анти Котополис",
+  "cards": [
+   {
+    "id": "ak-anti-nudnik",
+    "name": "Анти-Нудник",
+    "rarity": "rare"
+   },
+   {
+    "id": "ak-anti-babushka",
+    "name": "Анти-Бабушка",
+    "rarity": "common"
+   },
+   {
+    "id": "ak-anti-dedushka",
+    "name": "Анти-Дедушка",
+    "rarity": "rare"
+   },
+   {
+    "id": "ak-anti-gonya",
+    "name": "Анти-Гоня",
+    "rarity": "common"
+   },
+   {
+    "id": "ak-anti-lapochka",
+    "name": "Анти-Лапочка",
+    "rarity": "common"
+   },
+   {
+    "id": "ak-chernoe-solnce",
+    "name": "Чёрное солнце Котополиса",
+    "rarity": "epic"
+   }
+  ]
+ },
+ {
+  "sheet": 26,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "mr-arhivarius",
+    "name": "Архивариус удалённых серий",
+    "rarity": "legend"
+   },
+   {
+    "id": "mr-montazher",
+    "name": "Монтажёр без лица",
+    "rarity": "epic"
+   },
+   {
+    "id": "mr-pult",
+    "name": "Пульт, который переключает сам",
+    "rarity": "rare"
+   },
+   {
+    "id": "mr-zastavka",
+    "name": "Заставка задом наперёд",
+    "rarity": "common"
+   },
+   {
+    "id": "mr-plenochnyi-cherv",
+    "name": "Плёночный червь",
+    "rarity": "common"
+   },
+   {
+    "id": "mr-nochnoy-retik",
+    "name": "Ночной Ретик",
+    "rarity": "legend"
+   }
+  ]
  }
 ]
