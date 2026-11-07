@@ -55,7 +55,7 @@ def poster(card, out):
         d.text((tx, y), ln, font=fnt, fill='white', anchor='lt')
         y += int(fnt.size * 1.12)
     y += 22
-    for ln in ['Бьём вместе до полуночи.', 'Последний удар — и его', 'карточка будет твоей']:
+    for ln in ['Бьём вместе до полуночи.', '5 лучших бойцов получат', 'его карточку себе']:
         d.text((tx, y), ln, font=font(FR, 32), fill=MUTED, anchor='lt')
         y += 44
     d.text((tx, H - 110), '@multoretik_bot', font=font(FB, 30), fill=RARE['legend'], anchor='lt')
