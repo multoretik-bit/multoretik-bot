@@ -7,6 +7,8 @@
 // POST {action:"reserve", key, video} -> RETIKO при сборке видео получает код серии
 // POST {action:"publish", key, video} -> RETIKO после выкладки: ссылки и время выхода
 // POST {action:"tick", key}          -> pg_cron: уведомить о сериях, чьё время выхода наступило
+// POST {action:"quiz", key, video:{id, questions}} -> RETIKO: викторина по сценарию серии
+// интерактивы (initData): quiz_get/quiz_answer {video, answers}, boss, hit {n}, boss_claim, spin, game_start/game_win {game}, craft {card}, set_claim {channel}
 import { createClient } from "npm:@supabase/supabase-js@2.117.0";
 
 const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
@@ -153,7 +155,7 @@ async function me(u: TgUser) {
   const freshP = freshIds();
   const [bonus, owner] = await Promise.all([daily(user), OWNER_IDS.includes(u.id) ? ownerStats(u.id) : null, cards()]);
   const [{ data: fresh }, { data: mine }, { data: vids }, { data: top }, { data: done }, { count: friends }] = await Promise.all([
-    db.from("users").select("coins,streak,subs,notify").eq("tg_id", u.id).single(),
+    db.from("users").select("coins,streak,subs,notify,last_spin").eq("tg_id", u.id).single(),
     db.from("user_cards").select("card_id,count").eq("tg_id", u.id),
     db.from("videos").select("id,channel,title,yt_url,vk_url,rt_url,thumb_url,published_at")
       .not("notified_at", "is", null).order("published_at", { ascending: false }).limit(40),
@@ -162,11 +164,18 @@ async function me(u: TgUser) {
     db.from("users").select("tg_id", { count: "exact", head: true }).eq("ref_by", u.id),
   ]);
   const freshList = await freshP;
+  const [{ data: qz }, { data: qa }, { data: sc }] = await Promise.all([
+    db.from("quizzes").select("video_id").in("video_id", (vids || []).map((v) => v.id)),
+    db.from("quiz_answers").select("video_id,correct").eq("tg_id", u.id),
+    db.from("set_claims").select("channel").eq("tg_id", u.id),
+  ]);
   return json({
     me: { id: u.id, name: user.name, ...fresh, friends: friends || 0 },
     bonus, cards: await cards(), mine: mine || [], videos: vids || [],
     redeemed: (done || []).map((r) => r.video_id), top: top || [],
     packPrice: PACK_PRICE, owner, fresh: freshList,
+    quizzes: (qz || []).map((q) => q.video_id), quizDone: Object.fromEntries((qa || []).map((q) => [q.video_id, q.correct])),
+    sets: (sc || []).map((x) => x.channel), spinToday: fresh?.last_spin === mskDay(), wheel: WHEEL.map(({ w, ...x }) => x),
   });
 }
 
@@ -212,6 +221,178 @@ async function subs(u: TgUser, list: unknown, notify: unknown) {
   if (s) patch.subs = s;
   if (typeof notify === "boolean") patch.notify = notify;
   await db.from("users").update(patch).eq("tg_id", u.id);
+  return json({ ok: true });
+}
+
+// ---------------------------------------------------------------- интерактивы (07.11)
+const BOSS_ENERGY = 300;       // ударов по боссу в день на человека
+const BOSS_MIN_HITS = 30;      // столько ударов — и участник получает награду, если босса победили
+const QUIZ_COIN = 5, QUIZ_ALL = 10;
+const GAME_WINS = 3, GAME_COIN = 5;   // «Найди пару»: монеты за первые 3 победы дня
+const SET_COINS = 100;
+const NEXT: Record<string, string> = { common: "rare", rare: "epic", epic: "legend" };
+const WHEEL = [                 // сектора колеса (порядок = как нарисовано в приложении)
+  { kind: "coins", n: 5, w: 30 }, { kind: "card", r: "any", w: 15 }, { kind: "coins", n: 10, w: 24 }, { kind: "card", r: "rare", w: 8 },
+  { kind: "coins", n: 20, w: 14 }, { kind: "coins", n: 50, w: 4 }, { kind: "coins", n: 15, w: 3 }, { kind: "card", r: "epic", w: 2 },
+];
+const pub = (c: any) => ({ id: c.id, name: c.name, rarity: c.rarity, img: c.img, channel: c.channel });
+
+async function quizGet(u: TgUser, vid: string) {
+  const [{ data: q }, { data: done }] = await Promise.all([
+    db.from("quizzes").select("questions").eq("video_id", String(vid)).maybeSingle(),
+    db.from("quiz_answers").select("correct").eq("tg_id", u.id).eq("video_id", String(vid)).maybeSingle(),
+  ]);
+  if (!q) return json({ error: "Для этой серии викторины пока нет" }, 404);
+  return json({ ok: true, done: done ? done.correct : null,
+    questions: (q.questions as any[]).map((x) => ({ q: x.q, a: x.a })) });
+}
+
+async function quizAnswer(u: TgUser, vid: string, answers: unknown) {
+  const { data: q } = await db.from("quizzes").select("questions").eq("video_id", String(vid)).maybeSingle();
+  if (!q || !Array.isArray(answers)) return json({ error: "Викторина не найдена" }, 404);
+  await upsertUser(u);
+  const qs = q.questions as any[];
+  const right = qs.map((x) => x.right);
+  const correct = qs.reduce((s, x, i) => s + (Number(answers[i]) === x.right ? 1 : 0), 0);
+  const ins = await db.from("quiz_answers").insert({ tg_id: u.id, video_id: String(vid), correct });
+  if (ins.error) return json({ error: "Ты уже проходил эту викторину" }, 409);
+  const coins = correct * QUIZ_COIN + (correct === qs.length ? QUIZ_ALL : 0);
+  if (coins) await db.rpc("grant_cards", { u: u.id, ids: [], add_coins: coins });
+  return json({ ok: true, correct, total: qs.length, right, coins });
+}
+
+async function bossToday() {
+  const day = mskDay();
+  let { data: b } = await db.from("bosses").select("*").eq("day", day).maybeSingle();
+  if (!b) {
+    const pool = (await cards()).filter((c) => c.rarity === "epic" || c.rarity === "legend");
+    const seed = [...day].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    const card = pool[seed % pool.length];
+    const since = new Date(Date.now() - 3 * 86400e3).toISOString();
+    const { count } = await db.from("users").select("tg_id", { count: "exact", head: true }).gte("seen_at", since);
+    const hp = Math.max(1000, Math.round(((count || 0) * 120) / 100) * 100);   // ~ по 120 ударов на каждого, кто заходил за 3 дня
+    await db.from("bosses").insert({ day, card_id: card?.id, hp, max_hp: hp });
+    b = (await db.from("bosses").select("*").eq("day", day).single()).data;
+  }
+  return b;
+}
+
+async function boss(u: TgUser) {
+  const b = await bossToday();
+  const [{ data: mine }, { data: top }] = await Promise.all([
+    db.from("boss_hits").select("hits,claimed").eq("day", b.day).eq("tg_id", u.id).maybeSingle(),
+    db.from("boss_hits").select("tg_id,hits").eq("day", b.day).gt("hits", 0).order("hits", { ascending: false }).limit(5),
+  ]);
+  const ids = (top || []).map((t) => t.tg_id);
+  const { data: names } = ids.length ? await db.from("users").select("tg_id,name,username").in("tg_id", ids) : { data: [] as any[] };
+  const nm = Object.fromEntries((names || []).map((n) => [n.tg_id, n.name || n.username || "Зритель"]));
+  const card = (await cards()).find((c) => c.id === b.card_id);
+  const my = mine?.hits || 0;
+  return json({ ok: true, day: b.day, card: card ? pub(card) : null, hp: b.hp, max: b.max_hp, defeated: !!b.defeated_at,
+    killer: b.last_hit_by === u.id, my, energy: BOSS_ENERGY, need: BOSS_MIN_HITS,
+    canClaim: !!b.defeated_at && !mine?.claimed && my >= BOSS_MIN_HITS, claimed: !!mine?.claimed,
+    top: (top || []).map((t) => ({ name: nm[t.tg_id] || "Зритель", hits: t.hits, me: t.tg_id === u.id })) });
+}
+
+async function hit(u: TgUser, n: unknown) {
+  const b = await bossToday();
+  await upsertUser(u);
+  const { data, error } = await db.rpc("boss_hit", { u: u.id, d: b.day, n: Math.min(60, Math.max(0, Number(n) || 0)), energy: BOSS_ENERGY });
+  if (error) return json({ error: error.message }, 500);
+  const r = (data || [])[0] || {};
+  return json({ ok: true, applied: r.o_applied || 0, hp: r.o_hp ?? b.hp, max: r.o_max ?? b.max_hp, my: r.o_my || 0, killer: !!r.o_killer });
+}
+
+async function bossClaim(u: TgUser) {
+  const b = await bossToday();
+  if (!b.defeated_at) return json({ error: "Босс ещё жив — бей!" }, 400);
+  const { data: ok } = await db.from("boss_hits").update({ claimed: true }).eq("day", b.day).eq("tg_id", u.id)
+    .eq("claimed", false).gte("hits", BOSS_MIN_HITS).select("tg_id");
+  if (!ok?.length) return json({ error: `Награда — тем, кто нанёс от ${BOSS_MIN_HITS} ударов` }, 400);
+  const list = await roll(1, true);
+  if (b.last_hit_by === u.id) {                        // последний удар — сама карточка босса
+    const bc = (await cards()).find((c) => c.id === b.card_id);
+    if (bc) list.push(bc);
+  }
+  return json({ ok: true, cards: await give(u.id, list, 15), coins: 15, killer: b.last_hit_by === u.id });
+}
+
+async function spin(u: TgUser) {
+  const today = mskDay();
+  await upsertUser(u);
+  const { data: ok } = await db.from("users").update({ last_spin: today }).eq("tg_id", u.id)
+    .or(`last_spin.is.null,last_spin.lt.${today}`).select("tg_id");
+  if (!ok?.length) return json({ error: "Колесо уже крутил сегодня. Приходи завтра!" }, 400);
+  const total = WHEEL.reduce((s, x) => s + x.w, 0);
+  let x = Math.random() * total, sector = 0;
+  for (let i = 0; i < WHEEL.length; i++) { x -= WHEEL[i].w; if (x <= 0) { sector = i; break; } }
+  const w = WHEEL[sector];
+  if (w.kind === "coins") {
+    await db.rpc("grant_cards", { u: u.id, ids: [], add_coins: w.n });
+    return json({ ok: true, sector, coins: w.n, cards: [] });
+  }
+  const allowed = w.r === "epic" ? ["epic", "legend"] : w.r === "rare" ? RARE_UP : Object.keys(WEIGHTS);
+  const pool = await cards();
+  return json({ ok: true, sector, coins: 0, cards: await give(u.id, [pick(pool, allowed)].filter(Boolean), 0) });
+}
+
+async function gameStart(u: TgUser, game: string) {
+  if (game !== "pairs") return json({ error: "unknown game" }, 400);
+  await upsertUser(u);
+  const day = mskDay();
+  const { data: g } = await db.from("game_days").select("plays,wins").eq("tg_id", u.id).eq("day", day).eq("game", game).maybeSingle();
+  await db.from("game_days").upsert({ tg_id: u.id, day, game, plays: (g?.plays || 0) + 1, wins: g?.wins || 0, started_at: new Date().toISOString() });
+  return json({ ok: true, wins: g?.wins || 0, left: Math.max(0, GAME_WINS - (g?.wins || 0)) });
+}
+
+async function gameWin(u: TgUser, game: string) {
+  const day = mskDay();
+  const { data: g } = await db.from("game_days").select("wins,started_at").eq("tg_id", u.id).eq("day", day).eq("game", game).maybeSingle();
+  if (!g?.started_at) return json({ error: "Игра не начата" }, 400);
+  if (Date.now() - new Date(g.started_at).getTime() < 8000) return json({ error: "Слишком быстро!" }, 400);
+  if (g.wins >= GAME_WINS) {
+    await db.from("game_days").update({ started_at: null }).eq("tg_id", u.id).eq("day", day).eq("game", game);
+    return json({ ok: true, coins: 0, left: 0 });
+  }
+  const { data: upd } = await db.from("game_days").update({ wins: g.wins + 1, started_at: null })
+    .eq("tg_id", u.id).eq("day", day).eq("game", game).eq("wins", g.wins).select("wins");
+  if (!upd?.length) return json({ ok: true, coins: 0, left: 0 });
+  await db.rpc("grant_cards", { u: u.id, ids: [], add_coins: GAME_COIN });
+  return json({ ok: true, coins: GAME_COIN, left: GAME_WINS - g.wins - 1 });
+}
+
+async function craft(u: TgUser, id: string) {
+  const pool = await cards();
+  const c = pool.find((x) => x.id === String(id));
+  if (!c || !NEXT[c.rarity]) return json({ error: "Эту карточку обменять нельзя" }, 400);
+  const { data: ok } = await db.rpc("spend_dupes", { u: u.id, c: c.id, n: 3 });
+  if (!ok) return json({ error: "Нужно 3 лишних копии (×4 в коллекции)" }, 400);
+  const have = new Set(((await db.from("user_cards").select("card_id").eq("tg_id", u.id)).data || []).map((r) => r.card_id));
+  const up = pool.filter((x) => x.rarity === NEXT[c.rarity]);
+  const fresh = up.filter((x) => !have.has(x.id));                // сперва те, которых ещё нет
+  const list = fresh.length ? fresh : up;
+  return json({ ok: true, cards: await give(u.id, [list[Math.floor(Math.random() * list.length)]], 0) });
+}
+
+async function setClaim(u: TgUser, channel: string) {
+  const need = (await cards()).filter((c) => c.channel === String(channel)).map((c) => c.id);
+  if (!need.length) return json({ error: "Нет такого набора" }, 400);
+  const have = new Set(((await db.from("user_cards").select("card_id").eq("tg_id", u.id).in("card_id", need)).data || []).map((r) => r.card_id));
+  if (need.some((id) => !have.has(id))) return json({ error: "Набор ещё не собран" }, 400);
+  const ins = await db.from("set_claims").insert({ tg_id: u.id, channel: String(channel) });
+  if (ins.error) return json({ error: "Награда за этот набор уже получена" }, 409);
+  return json({ ok: true, coins: SET_COINS, cards: await give(u.id, await roll(1, true), SET_COINS) });
+}
+
+// RETIKO: вопросы викторины по сценарию серии
+async function quizSave(v: any) {
+  const qs = Array.isArray(v?.questions) ? v.questions : [];
+  const ok = qs.length >= 2 && qs.length <= 5 && qs.every((x: any) => typeof x?.q === "string" && Array.isArray(x?.a) && x.a.length === 4 &&
+    x.a.every((a: any) => typeof a === "string") && Number.isInteger(x.right) && x.right >= 0 && x.right < 4);
+  if (!v?.id || !ok) return json({ error: "bad quiz" }, 400);
+  const clean = qs.map((x: any) => ({ q: x.q.slice(0, 160), a: x.a.map((a: string) => a.slice(0, 80)), right: x.right }));
+  const { error } = await db.from("quizzes").upsert({ video_id: String(v.id), questions: clean });
+  if (error) return json({ error: error.message }, 500);
   return json({ ok: true });
 }
 
@@ -328,8 +509,9 @@ Deno.serve(async (req) => {
       return new Response("ok");
     }
     const body = await req.json();
-    if (["reserve", "publish", "tick"].includes(body.action)) {
+    if (["reserve", "publish", "tick", "quiz"].includes(body.action)) {
       if (body.key !== PUBLISH_KEY) return json({ error: "key" }, 401);
+      if (body.action === "quiz") return await quizSave(body.video);
       return body.action === "reserve" ? await reserve(body.video) : body.action === "publish" ? await publish(body.video) : await tick();
     }
     const u = await verify(body.initData);
@@ -339,6 +521,16 @@ Deno.serve(async (req) => {
       case "redeem": return await redeem(u, body.code);
       case "pack": return await pack(u);
       case "subs": return await subs(u, body.subs, body.notify);
+      case "quiz_get": return await quizGet(u, body.video);
+      case "quiz_answer": return await quizAnswer(u, body.video, body.answers);
+      case "boss": return await boss(u);
+      case "hit": return await hit(u, body.n);
+      case "boss_claim": return await bossClaim(u);
+      case "spin": return await spin(u);
+      case "game_start": return await gameStart(u, body.game);
+      case "game_win": return await gameWin(u, body.game);
+      case "craft": return await craft(u, body.card);
+      case "set_claim": return await setClaim(u, body.channel);
     }
     return json({ error: "unknown action" }, 400);
   } catch (e) {
