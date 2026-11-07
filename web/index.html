@@ -240,7 +240,7 @@ nav button.on{background:var(--wood-dark);color:var(--gold)}
     <button class="btn gold" id="redeem"><svg><use href="#i-cards"/></svg>Забрать карточки</button>
   </div>
   <div class="rules">
-    <div class="panel rule"><div class="ic"><svg><use href="#i-clock"/></svg></div><div>Первые <b>48 часов</b> после выхода серии — <b>3 карточки</b>, одна точно редкая</div></div>
+    <div class="panel rule"><div class="ic"><svg><use href="#i-clock"/></svg></div><div>В <b>3 новейших сериях</b> код даёт <b>3 карточки</b>, одна точно редкая. В старых — по одной</div></div>
     <div class="panel rule"><div class="ic"><svg><use href="#i-star"/></svg></div><div>Позже код тоже работает — <b>1 карточка</b> и монеты</div></div>
     <div class="panel rule"><div class="ic"><svg><use href="#i-flame"/></svg></div><div>Заходи каждый день: <b>карточка и монеты</b>, а на <b>7-й день подряд</b> — набор из 3 карточек</div></div>
   </div>
@@ -374,9 +374,8 @@ function renderFeed() {
     return;
   }
   $("#feed").innerHTML = list.map((v, i) => {
-    const age = (Date.now() - new Date(v.published_at)) / 36e5;
     const got = S.redeemed.includes(v.id);
-    const tag = got ? `<span class="tag got">код введён</span>` : age < 48 ? `<span class="tag new">×3 карточки</span>` : "";
+    const tag = got ? `<span class="tag got">код введён</span>` : (S.fresh || []).includes(v.id) ? `<span class="tag new">×3 карточки</span>` : "";
     return `<button class="panel ep" data-i="${i}"><div class="th">${v.thumb_url ? `<img src="${esc(v.thumb_url)}" alt="" loading="lazy">` : ""}
       <div class="play"><i>${icon("i-play", 30)}</i></div>${tag}</div>
       <div class="meta"><img src="${chImg(v.channel)}" alt=""><div><div class="t">${esc(v.title)}</div>

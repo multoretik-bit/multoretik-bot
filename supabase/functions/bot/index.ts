@@ -16,7 +16,7 @@ const APP = Deno.env.get("APP_URL")!;                    // адрес мини-
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false, autoRefreshToken: false } });
 
-const FRESH_H = 48;            // код «свежий» первые 48 часов — награда больше
+const FRESH_N = 3;             // код «свежий» только у 3 последних вышедших серий сети — 3 карточки, дальше по 1
 const PACK_PRICE = 50;
 const DAILY_COINS = 5;
 const NOTIFY_GAP_H = 3;        // не чаще одного уведомления в 3 часа
@@ -122,6 +122,13 @@ async function daily(user: any) {
   return { streak, coins: DAILY_COINS, pack };
 }
 
+// id трёх последних вышедших серий (по всей сети, время выхода уже наступило)
+async function freshIds(): Promise<string[]> {
+  const { data } = await db.from("videos").select("id").not("published_at", "is", null)
+    .lte("published_at", new Date().toISOString()).order("published_at", { ascending: false }).limit(FRESH_N);
+  return (data || []).map((r) => r.id);
+}
+
 async function ownerStats(id: number) {
   // владельцу — все карточки коллекции (и новые, когда они появятся)
   const have = new Set(((await db.from("user_cards").select("card_id").eq("tg_id", id)).data || []).map((r) => r.card_id));
@@ -143,6 +150,7 @@ async function ownerStats(id: number) {
 
 async function me(u: TgUser) {
   const user = await upsertUser(u);
+  const freshP = freshIds();
   const [bonus, owner] = await Promise.all([daily(user), OWNER_IDS.includes(u.id) ? ownerStats(u.id) : null, cards()]);
   const [{ data: fresh }, { data: mine }, { data: vids }, { data: top }, { data: done }, { count: friends }] = await Promise.all([
     db.from("users").select("coins,streak,subs,notify").eq("tg_id", u.id).single(),
@@ -153,11 +161,12 @@ async function me(u: TgUser) {
     db.from("redemptions").select("video_id").eq("tg_id", u.id),
     db.from("users").select("tg_id", { count: "exact", head: true }).eq("ref_by", u.id),
   ]);
+  const freshList = await freshP;
   return json({
     me: { id: u.id, name: user.name, ...fresh, friends: friends || 0 },
     bonus, cards: await cards(), mine: mine || [], videos: vids || [],
     redeemed: (done || []).map((r) => r.video_id), top: top || [],
-    packPrice: PACK_PRICE, owner,
+    packPrice: PACK_PRICE, owner, fresh: freshList,
   });
 }
 
@@ -173,7 +182,8 @@ async function redeem(u: TgUser, raw: string) {
     return json({ error: "Такого кода нет. Проверь цифры из серии" }, 404);
   }
   const user = await upsertUser(u);
-  const fresh = Date.now() - new Date(v.published_at).getTime() < FRESH_H * 3600e3;
+  if (new Date(v.published_at).getTime() > Date.now()) return json({ error: "Эта серия ещё не вышла" }, 404);
+  const fresh = (await freshIds()).includes(v.id);
   const ins = await db.from("redemptions").insert({ tg_id: u.id, video_id: v.id, fresh });
   if (ins.error) return json({ error: "Этот код ты уже вводил. Жди код в следующей серии!" }, 409);
   const got = await give(u.id, await roll(fresh ? 3 : 1, fresh), fresh ? 20 : 10);
@@ -256,7 +266,7 @@ async function tick() {
       const send = (m: string, body: any) => tg(m, body);
       const body: any = {
         chat_id: us.tg_id,
-        text: `🆕 Новая серия ${v.channel}!\n«${v.title}»\n\nВ серии спрятан секретный код — смотри внимательно! Введи его здесь и получи карточки 🃏 (первые 48 часов — сразу 3)`,
+        text: `🆕 Новая серия ${v.channel}!\n«${v.title}»\n\nВ серии спрятан секретный код — смотри внимательно! Введи его здесь и получи карточки 🃏 (пока серия среди 3 новейших — сразу 3)`,
         reply_markup: { inline_keyboard: [[{ text: "▶ Смотреть", web_app: { url: `${APP}?v=${encodeURIComponent(v.id)}` } }]] },
       };
       let r: any = null;
