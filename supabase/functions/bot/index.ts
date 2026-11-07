@@ -312,9 +312,10 @@ async function bossClaim(u: TgUser) {
   const { data: ok } = await db.from("boss_hits").update({ claimed: true }).eq("day", b.day).eq("tg_id", u.id)
     .eq("claimed", false).gte("hits", BOSS_MIN_HITS).select("tg_id");
   if (!ok?.length) return json({ error: `Награда — тем, кто нанёс от ${BOSS_MIN_HITS} ударов` }, 400);
-  const bc = (await cards()).find((c) => c.id === b.card_id);   // каждому участнику — сама карточка босса
-  const list = bc ? [bc] : [];
-  if (b.last_hit_by === u.id) list.push(...(await roll(1, true)));   // последний удар — ещё и редкая
+  // 07.11 пользователь: «если ты побьёшь злодея — только тебе карточка, а не всем»: карточка босса — за последний удар,
+  // остальным участникам (от BOSS_MIN_HITS ударов) — случайная редкая или лучше и монеты
+  const bc = (await cards()).find((c) => c.id === b.card_id);
+  const list = b.last_hit_by === u.id && bc ? [bc] : await roll(1, true);
   return json({ ok: true, cards: await give(u.id, list, 15), coins: 15, killer: b.last_hit_by === u.id });
 }
 
@@ -398,7 +399,7 @@ async function announceBoss() {
   const card = (await cards()).find((c) => c.id === b.card_id);
   if (!card) return 0;
   const { data: users } = await db.from("users").select("tg_id").eq("notify", true).eq("blocked", false).limit(5000);
-  const text = `⚔️ Новый босс дня — «${card.name}»!\n\nБьём его все вместе до полуночи. Победим — каждый, кто нанёс от ${BOSS_MIN_HITS} ударов, получит эту карточку себе в коллекцию.\n\nЗаходи и жми по боссу 👇`;
+  const text = `⚔️ Новый босс дня — «${card.name}»!\n\nБьём его все вместе до полуночи. Кто нанесёт последний удар — заберёт его карточку себе! Остальным, кто нанёс от ${BOSS_MIN_HITS} ударов, — редкая карточка и монеты.\n\nЗаходи и жми по боссу 👇`;
   const reply_markup = { inline_keyboard: [[{ text: "⚔️ Бить босса", web_app: { url: `${APP}?tab=games` } }]] };
   let sent = 0;
   for (const [i, us] of (users || []).entries()) {
