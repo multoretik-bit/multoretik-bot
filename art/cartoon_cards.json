@@ -780,5 +780,185 @@
     "rarity": "legend"
    }
   ]
+ },
+ {
+  "sheet": 27,
+  "channel": "КотоРетик",
+  "cards": [
+   {
+    "id": "kt-king-korzhik",
+    "name": "Король Коржик",
+    "rarity": "legend"
+   },
+   {
+    "id": "kt-queen-karamelka",
+    "name": "Королева Карамелька",
+    "rarity": "legend"
+   },
+   {
+    "id": "kt-genius-kompot",
+    "name": "Гений Компот",
+    "rarity": "legend"
+   },
+   {
+    "id": "kt-super-mama",
+    "name": "Супер-Мама",
+    "rarity": "epic"
+   },
+   {
+    "id": "kt-super-papa",
+    "name": "Супер-Папа",
+    "rarity": "epic"
+   },
+   {
+    "id": "kt-baby-sazhik",
+    "name": "Малыш Сажик-Великан",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 28,
+  "channel": "СмешаРетик",
+  "cards": [
+   {
+    "id": "sm-champion-krosh",
+    "name": "Чемпион Крош",
+    "rarity": "legend"
+   },
+   {
+    "id": "sm-princess-nyusha",
+    "name": "Принцесса Нюша",
+    "rarity": "legend"
+   },
+   {
+    "id": "sm-yozhik-keeper",
+    "name": "Ёжик-Хранитель",
+    "rarity": "legend"
+   },
+   {
+    "id": "sm-prof-losyash",
+    "name": "Профессор Лосяш",
+    "rarity": "epic"
+   },
+   {
+    "id": "sm-captain-kopatych",
+    "name": "Капитан Копатыч",
+    "rarity": "epic"
+   },
+   {
+    "id": "sm-rocket-pin",
+    "name": "Ракета Пина",
+    "rarity": "rare"
+   }
+  ]
+ },
+ {
+  "sheet": 29,
+  "channel": "ПеппаРетик",
+  "cards": [
+   {
+    "id": "pp-queen-peppa",
+    "name": "Королева Пеппа",
+    "rarity": "legend"
+   },
+   {
+    "id": "pp-knight-george",
+    "name": "Рыцарь Джордж",
+    "rarity": "legend"
+   },
+   {
+    "id": "pp-super-papa",
+    "name": "Супер Папа Свин",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-mama-boss",
+    "name": "Мама Свинка-Босс",
+    "rarity": "epic"
+   },
+   {
+    "id": "pp-princess-suzi",
+    "name": "Принцесса Сьюзи",
+    "rarity": "rare"
+   },
+   {
+    "id": "pp-pirate-pedro",
+    "name": "Пират Педро",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 30,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "mb-masha",
+    "name": "Маша-Ретик",
+    "rarity": "legend"
+   },
+   {
+    "id": "mb-medved",
+    "name": "Медведь-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "mb-rosie",
+    "name": "Розочка-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "mb-zayac",
+    "name": "Заяц-Ретик",
+    "rarity": "common"
+   },
+   {
+    "id": "mb-panda",
+    "name": "Панда-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "mb-wolves",
+    "name": "Волки-Ретик",
+    "rarity": "common"
+   }
+  ]
+ },
+ {
+  "sheet": 31,
+  "channel": "МультоРетик",
+  "cards": [
+   {
+    "id": "sv-cheburashka",
+    "name": "Чебурашка-Ретик",
+    "rarity": "legend"
+   },
+   {
+    "id": "sv-matroskin",
+    "name": "Кот Матроскин-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "sv-gena",
+    "name": "Крокодил Гена-Ретик",
+    "rarity": "epic"
+   },
+   {
+    "id": "sv-sharik",
+    "name": "Пёс Шарик-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sv-shapoklyak",
+    "name": "Шапокляк-Ретик",
+    "rarity": "rare"
+   },
+   {
+    "id": "sv-pechkin",
+    "name": "Почтальон Печкин-Ретик",
+    "rarity": "common"
+   }
+  ]
  }
 ]
