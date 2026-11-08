@@ -124,8 +124,10 @@ svg{display:block}
 @keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
 .card .gem{position:absolute;left:9px;top:9px;width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
 .card.common .gem{background:var(--common)} .card.rare .gem{background:var(--rare)} .card.epic .gem{background:var(--epic)} .card.legend .gem{background:var(--legend)}
-.card.locked .art{display:grid;place-items:center;border-color:#3A2B55;background:#1C1030}
-.card.locked .art svg{width:46%;opacity:.5}
+.card.locked .art{display:grid;place-items:center;position:relative;background:#1C1030}
+.card.locked .art img{position:absolute;inset:0;filter:brightness(.3) saturate(.6) blur(2px)}
+.card.locked.common .art{border-color:#3A2B55}
+.card.locked .art svg{width:46%;opacity:.75;position:relative}
 .card.locked .nm{color:#6F5C92}
 .card.tap{cursor:pointer}
 
@@ -522,12 +524,12 @@ function renderColl() {
   $("#setbox").querySelectorAll(".setclaim").forEach((b) => b.onclick = () => claimSet(b.dataset.c));
   $("#ctabs").querySelectorAll(".f").forEach((b) => b.onclick = () => { S.ctab = b.dataset.c; renderColl(); });
   const all = [...S.cards].filter((c) => S.ctab === "Все" || c.channel === S.ctab)
-    .sort((a, b) => (have[b.id] ? 1 : 0) - (have[a.id] ? 1 : 0) || ORDER[a.rarity] - ORDER[b.rarity]);
+    .sort((a, b) => ORDER[a.rarity] - ORDER[b.rarity] || (b.pop || 0) - (a.pop || 0));   // сверху самые популярные герои
   const got = S.cards.filter((c) => have[c.id]).length;
   $("#pcount").textContent = `${got} / ${S.cards.length}`;
   $("#pbar").style.width = (S.cards.length ? got / S.cards.length * 100 : 0) + "%";
   $("#grid").innerHTML = all.map((c) => have[c.id] ? cardHtml(c, have[c.id]) :
-    `<div class="card locked"><div class="art">${LOCK}</div><div class="nm">???</div></div>`).join("");
+    `<div class="card locked ${c.rarity}"><div class="art">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${LOCK}</div><div class="nm">???</div></div>`).join("");
   $("#grid").querySelectorAll(".card.tap").forEach((el) => el.onclick = () => {
     const c = S.cards.find((x) => x.id === el.dataset.id);
     $("#drop").innerHTML = `<div class="big">${cardHtml(c, 0, true)}</div><div class="rar" style="color:var(--${c.rarity});font-size:16px">${RAR[c.rarity]} · ${esc(c.channel)}</div>
